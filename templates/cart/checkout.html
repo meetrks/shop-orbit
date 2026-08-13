@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+
+{% block title %}Checkout — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block extra_head %}
+<script>
+    gtag("event", "begin_checkout", {
+        currency: "INR",
+        value: {{ total_payable }},
+        items: [
+            {% for item in cart_items %}
+            {
+                item_id: "{{ item.product.sku|escapejs }}",
+                item_name: "{{ item.product.title|escapejs }}",
+                price: {{ item.unit_price }},
+                quantity: {{ item.quantity }},
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="font-serif text-3xl text-navy-900 mb-5">Checkout</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <div class="lg:col-span-2 bg-white border border-sky-100 rounded-2xl shadow-sm p-5">
+            <h2 class="text-lg font-semibold text-navy-900 mb-3">Shipping Details</h2>
+            <form id="checkout-form" method="post" class="space-y-3"
+                  x-data="{ addressChoice: '{{ form.saved_address.value|default_if_none:'' }}' }">
+                {% csrf_token %}
+
+                {% if saved_addresses %}
+                    <div class="space-y-2 mb-3">
+                        {% for address in saved_addresses %}
+                            <label class="flex items-start gap-3 rounded-lg border px-3.5 py-3 text-sm cursor-pointer transition-colors"
+                                   :class="addressChoice === '{{ address.pk }}' ? 'border-sky-400 bg-sky-50' : 'border-sky-200 hover:bg-sky-50/60'">
+                                <input type="radio" name="saved_address" value="{{ address.pk }}" x-model="addressChoice" class="mt-1">
+                                <span>
+                                    <span class="font-semibold text-navy-900">{{ address.label|default:"Address" }}</span>
+                                    {% if address.is_default %}
+                                        <span class="ml-1 text-xs font-medium px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700">Default</span>
+                                    {% endif %}
+                                    <span class="block text-navy-900/70">
+                                        {{ address.recipient_name }}, {{ address.phone_number }}<br>
+                                        {{ address.address_line1 }}{% if address.address_line2 %}, {{ address.address_line2 }}{% endif %},
+                                        {{ address.city }}, {{ address.state }} {{ address.postal_code }}
+                                    </span>
+                                </span>
+                            </label>
+                        {% endfor %}
+                        <label class="flex items-center gap-3 rounded-lg border px-3.5 py-3 text-sm cursor-pointer transition-colors"
+                               :class="addressChoice === '' ? 'border-sky-400 bg-sky-50' : 'border-sky-200 hover:bg-sky-50/60'">
+                            <input type="radio" name="saved_address" value="" x-model="addressChoice">
+                            <span class="font-semibold text-navy-900">+ Enter a new address</span>
+                        </label>
+                    </div>
+                {% endif %}
+
+                <div x-show="addressChoice === ''" class="space-y-3">
+                    {% crispy form %}
+                    <label class="flex items-center gap-2 text-sm text-navy-900/70">
+                        <input type="checkbox" name="save_address" checked>
+                        Save this address for next time
+                    </label>
+                </div>
+
+                <button type="submit" id="checkout-submit" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-lg hover:bg-sky-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                    Continue to Payment
+                </button>
+                <p class="text-xs text-navy-900/50">
+                    You'll pay securely on the next step via Razorpay — UPI, cards, net banking, or wallets. Nothing is
+                    charged until you complete payment there.
+                </p>
+            </form>
+        </div>
+
+        <div class="space-y-4 xl:space-y-0 xl:grid xl:grid-cols-2 xl:gap-4 xl:items-start">
+            <div class="bg-sky-100 border border-sky-200 rounded-2xl p-5">
+                <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-3">Payment Breakdown</h2>
+                <ul class="space-y-1.5 mb-3">
+                    {% for item in cart_items %}
+                        <li class="flex justify-between text-sm text-navy-900/70">
+                            <span class="truncate pr-2">{{ item.product.title }}{% if item.variant %} ({{ item.variant.label }}){% endif %} &times; {{ item.quantity }}</span>
+                            <span class="shrink-0">&#8377;{{ item.line_total|intcomma }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <form method="get" class="flex flex-wrap items-stretch gap-2 mb-3">
+                    <input type="text" name="coupon_code" value="{{ applied_coupon.code|default:'' }}" placeholder="Coupon code"
+                           class="flex-1 min-w-[8rem] rounded-md border border-sky-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <button type="submit" class="px-4 py-2 rounded-md bg-white border border-sky-300 text-sky-700 text-sm font-semibold hover:bg-sky-50">
+                        Apply
+                    </button>
+                </form>
+                {% if coupon_preview_error %}
+                    <p class="text-xs text-red-600 mb-3">{{ coupon_preview_error }}</p>
+                {% elif applied_coupon %}
+                    <p class="text-xs text-sky-700 mb-3">Coupon "{{ applied_coupon.code }}" applied.</p>
+                {% endif %}
+
+                <div class="border-t border-sky-200 pt-3 space-y-1.5">
+                    <div class="flex justify-between text-sm text-navy-900/70">
+                        <span>Subtotal</span>
+                        <span>&#8377;{{ cart.subtotal|intcomma }}</span>
+                    </div>
+                    {% if discount_amount %}
+                        <div class="flex justify-between text-sm text-sky-700">
+                            <span>Discount</span>
+                            <span>&minus;&#8377;{{ discount_amount|intcomma }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="flex justify-between text-base font-semibold text-navy-900 pt-2 border-t border-sky-200">
+                        <span>Total Payable</span>
+                        <span>&#8377;{{ total_payable|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-sky-100 rounded-2xl p-5">
+                <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-3">Secure Payment</h2>
+                <p class="text-sm text-navy-900/70">
+                    Powered by Razorpay. Pay by UPI, credit/debit card, net banking, or wallet — your payment details
+                    never touch our servers.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var form = document.getElementById("checkout-form");
+    var submitButton = document.getElementById("checkout-submit");
+    // Prevents a double-click (or slow network) from creating two Orders
+    // for the same cart submission.
+    form.addEventListener("submit", function () {
+        submitButton.disabled = true;
+        submitButton.textContent = "Please wait…";
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Request a Return — Order {{ order.order_number }} — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <h1 class="text-2xl font-bold text-navy-900 mb-1">Request a Return</h1>
+    <p class="text-sm text-navy-900/60 mb-8">Order {{ order.order_number }}</p>
+
+    {% if items %}
+        <form method="post" class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6 space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-3">Items to return</h2>
+                <div class="divide-y divide-sky-50">
+                    {% for entry in items %}
+                        <div class="py-3 flex items-center justify-between gap-4">
+                            <div>
+                                <p class="font-medium text-navy-900 text-sm">
+                                    {{ entry.order_item.product_title }}{% if entry.order_item.variant_label %} ({{ entry.order_item.variant_label }}){% endif %}
+                                </p>
+                                <p class="text-xs text-navy-900/50">Up to {{ entry.remaining }} eligible</p>
+                            </div>
+                            <input type="number" name="quantity_{{ entry.order_item.pk }}" min="0" max="{{ entry.remaining }}" value="0"
+                                   class="w-20 border border-slate-200 rounded-lg px-3 py-1.5 text-sm">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div>
+                <label for="id_reason" class="block text-sm font-semibold text-navy-900 mb-1">Reason</label>
+                <select name="reason" id="id_reason" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                    {% for value, label in reasons %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="id_comments" class="block text-sm font-semibold text-navy-900 mb-1">Comments (optional)</label>
+                <textarea name="comments" id="id_comments" rows="3" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                          placeholder="Tell us more about the issue"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <a href="{% url 'cart:order_confirmation' order.order_number %}"
+                   class="font-semibold text-navy-900/70 border border-slate-200 rounded-lg px-4 py-2 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="font-semibold text-white bg-sky-600 rounded-lg px-4 py-2 hover:bg-sky-700 transition-colors">
+                    Submit Request
+                </button>
+            </div>
+        </form>
+    {% else %}
+        <p class="text-navy-900/70">There are no eligible items left to return on this order.</p>
+    {% endif %}
+</div>
+{% endblock %}

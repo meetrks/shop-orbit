@@ -1,0 +1,9 @@
+Hi {{ user.get_short_name }},
+
+Welcome to {{ site_name }}! Your account is ready.
+
+Browse our latest collections and enjoy a smooth, secure checkout with Razorpay — supporting UPI, cards, net banking, and wallets.
+
+If you have any questions, just reply to this email — we're happy to help.
+
+Thanks for joining us.

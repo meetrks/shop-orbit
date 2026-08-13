@@ -1,0 +1,43 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+  <p>Supplier: <strong>{{ po.supplier }}</strong> &middot; Status: <strong>{{ po.get_status_display }}</strong></p>
+
+  <form method="post">
+    {% csrf_token %}
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Ordered</th>
+          <th>Received so far</th>
+          <th>Remaining</th>
+          <th>Receive now</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in lines %}
+          <tr>
+            <td>{{ line.variant|default:line.product }}</td>
+            <td>{{ line.quantity_ordered }}</td>
+            <td>{{ line.quantity_received }}</td>
+            <td>{{ line.quantity_remaining }}</td>
+            <td>
+              {% if line.quantity_remaining > 0 %}
+                <input type="number" name="line_{{ line.pk }}" min="0" max="{{ line.quantity_remaining }}" value="0">
+              {% else %}
+                Fully received
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="submit-row">
+      <input type="submit" value="Record receipt" class="default">
+      <a href="{% url 'admin:inventory_purchaseorder_change' po.pk %}" class="button cancel-link">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

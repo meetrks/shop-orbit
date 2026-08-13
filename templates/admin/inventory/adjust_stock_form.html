@@ -1,0 +1,18 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+  <p>Current stock on hand for <strong>{{ target }}</strong>: <strong>{{ current_stock }}</strong>.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+    </table>
+    <div class="submit-row">
+      <input type="submit" value="Apply adjustment" class="default">
+      <a href="../" class="button cancel-link">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

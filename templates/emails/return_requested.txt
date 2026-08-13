@@ -1,0 +1,15 @@
+Hi {{ order.shipping_full_name }},
+
+We've received your return request for order {{ order.order_number }}:
+
+  Reason: {{ return_request.get_reason_display }}
+{% if return_request.comments %}  Comments: {{ return_request.comments }}
+{% endif %}
+Items:
+{% for line in return_request.lines.all %}  - {{ line.quantity }} x {{ line.order_item.product_title }}
+{% endfor %}
+We'll review it and let you know once it's approved or if we need more
+information. You can cancel this request from your order page as long as
+it's still pending review.
+
+Thank you for shopping with {{ site_name }}.

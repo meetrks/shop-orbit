@@ -1,0 +1,9 @@
+Hi {{ order.shipping_full_name }},
+
+We attempted to refund ₹{{ refund.amount }} for order {{ order.order_number }}, but the refund didn't go through.
+{% if refund.failure_reason %}
+Reason: {{ refund.failure_reason }}
+{% endif %}
+Our team has been notified and will follow up with you shortly to resolve this.
+
+We're sorry for the inconvenience, {{ site_name }}.

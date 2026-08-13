@@ -1,0 +1,12 @@
+Hi {{ order.shipping_full_name }},
+
+We weren't able to process your payment of ₹{{ payment.amount }} for order {{ order.order_number }}.
+{% if payment.failure_reason %}
+Reason: {{ payment.failure_reason }}
+{% endif %}
+You haven't been charged. You can try again here:
+{{ retry_url }}
+
+If you keep running into trouble, just reply to this email and we'll help sort it out.
+
+Thanks, {{ site_name }}.

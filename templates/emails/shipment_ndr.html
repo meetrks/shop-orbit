@@ -1,0 +1,14 @@
+{% extends "emails/_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hi {{ shipment.order.shipping_full_name }},</p>
+<p style="margin:0 0 16px;">Our courier attempted to deliver order <strong>{{ shipment.order.order_number }}</strong>
+but wasn't able to complete it.</p>
+{% if shipment.tracking_url %}
+<p style="margin:0 0 16px;">
+<a href="{{ shipment.tracking_url }}" style="display:inline-block;padding:10px 20px;background-color:#0284c7;color:#ffffff;border-radius:6px;text-decoration:none;font-weight:600;">Track Your Order</a>
+</p>
+{% endif %}
+<p style="margin:0;">Please make sure someone is available at the delivery address, or contact us if the address
+on file needs to be corrected. Another delivery attempt will typically be made automatically — if you don't hear
+back within a couple of days, reply to this email and we'll follow up with the courier.</p>
+{% endblock %}

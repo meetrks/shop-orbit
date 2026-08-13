@@ -1,0 +1,13 @@
+Hi {{ order.shipping_full_name }},
+
+We've reviewed your return request for order {{ order.order_number }} and
+are unable to approve it.
+
+Items:
+{% for line in return_request.lines.all %}  - {{ line.quantity }} x {{ line.order_item.product_title }}
+{% endfor %}
+{% if return_request.staff_notes %}Reason: {{ return_request.staff_notes }}
+{% endif %}
+If you have questions about this decision, please contact us.
+
+Thank you for shopping with {{ site_name }}.

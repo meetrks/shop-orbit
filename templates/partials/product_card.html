@@ -1,0 +1,80 @@
+{% load humanize %}
+<div class="group bg-white border border-sky-100 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
+    <div class="relative">
+        <a href="{{ product.get_absolute_url }}" class="block overflow-hidden">
+            {% if product.thumbnail %}
+                <img src="{{ product.thumbnail.url }}" alt="{{ product.title }}" class="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-105">
+            {% else %}
+                <div class="w-full aspect-square bg-sky-50 flex items-center justify-center text-sky-300 text-sm">No image</div>
+            {% endif %}
+
+            <div class="absolute top-2 left-2 flex flex-col gap-1">
+                {% if product.discount_percent > 0 %}
+                    <span class="bg-sky-600 text-white text-xs font-semibold tracking-wide px-2 py-0.5 rounded-full">-{{ product.discount_percent }}%</span>
+                {% endif %}
+                {% if product.is_out_of_stock %}
+                    <span class="bg-red-600 text-white text-xs font-semibold tracking-wide px-2 py-0.5 rounded-full">Out of stock</span>
+                {% elif product.is_low_stock %}
+                    <span class="bg-amber-500 text-white text-xs font-semibold tracking-wide px-2 py-0.5 rounded-full">Low stock</span>
+                {% endif %}
+            </div>
+        </a>
+
+        {% if user.is_authenticated %}
+            <form action="{% url 'cart:toggle_wishlist' product.pk %}" method="post" class="absolute top-2 right-2">
+                {% csrf_token %}
+                <button type="submit" title="{% if product.pk in wishlisted_product_ids %}Remove from wishlist{% else %}Save to wishlist{% endif %}"
+                        class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-white/90 shadow hover:bg-white">
+                    {% if product.pk in wishlisted_product_ids %}
+                        <svg class="w-4 h-4 fill-sky-600" viewBox="0 0 20 20"><path d="M10 17.5s-6.5-4.03-8.5-7.86C-.1 6.6 1.3 3.5 4.4 3.1c1.8-.24 3.3.7 4.1 2.02C9.3 3.8 10.8 2.86 12.6 3.1c3.1.4 4.5 3.5 2.9 6.54C16.5 13.47 10 17.5 10 17.5z"/></svg>
+                    {% else %}
+                        <svg class="w-4 h-4 fill-none stroke-navy-900" stroke-width="1.8" viewBox="0 0 20 20"><path d="M10 17.5s-6.5-4.03-8.5-7.86C-.1 6.6 1.3 3.5 4.4 3.1c1.8-.24 3.3.7 4.1 2.02C9.3 3.8 10.8 2.86 12.6 3.1c3.1.4 4.5 3.5 2.9 6.54C16.5 13.47 10 17.5 10 17.5z"/></svg>
+                    {% endif %}
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="p-5 flex flex-col flex-1">
+        <p class="text-xs text-sky-600 font-medium uppercase tracking-wide mb-1.5">
+            {{ product.subcategory.category.department.name }} &middot; {{ product.subcategory.category.name }}
+        </p>
+        <a href="{{ product.get_absolute_url }}" class="text-sm font-medium text-navy-900 hover:text-sky-700 line-clamp-2 mb-1.5">
+            {{ product.title }}
+        </a>
+
+        <div class="mb-2.5">
+            {% include "partials/star_rating.html" with rating=product.avg_rating review_count=product.review_count show_count=product.review_count %}
+        </div>
+
+        <div class="mt-auto flex items-end justify-between flex-wrap gap-2 pt-2">
+            <div>
+                <p class="text-base font-semibold text-navy-900">&#8377;{{ product.display_price|intcomma }}</p>
+                {% if product.discount_price %}
+                    <p class="text-xs text-slate-400 line-through">&#8377;{{ product.full_price|intcomma }}</p>
+                {% endif %}
+            </div>
+            {% if product.variant_count %}
+                <a href="{{ product.get_absolute_url }}" class="text-xs font-semibold px-3 py-2 rounded-md bg-sky-600 text-white hover:bg-sky-700">
+                    Select options
+                </a>
+            {% elif user.is_authenticated %}
+                <form action="{% url 'cart:add_to_cart' product.pk %}" method="post" class="js-track-add-to-cart"
+                      data-item-id="{{ product.sku }}" data-item-name="{{ product.title }}" data-price="{{ product.display_price }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" {% if product.is_out_of_stock %}disabled{% endif %}
+                        class="text-xs font-semibold px-3 py-2 rounded-md
+                        {% if product.is_out_of_stock %} bg-slate-200 text-slate-400 cursor-not-allowed
+                        {% else %} bg-sky-600 text-white hover:bg-sky-700 {% endif %}">
+                        Add to Cart
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="text-xs font-semibold px-3 py-2 rounded-md bg-sky-600 text-white hover:bg-sky-700">
+                    Add to Cart
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

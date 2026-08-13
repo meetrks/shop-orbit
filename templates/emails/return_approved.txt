@@ -1,0 +1,15 @@
+Hi {{ order.shipping_full_name }},
+
+Good news — your return request for order {{ order.order_number }} has been
+approved:
+
+Items:
+{% for line in return_request.lines.all %}  - {{ line.quantity }} x {{ line.order_item.product_title }}
+{% endfor %}
+{% if return_request.staff_notes %}Note from our team: {{ return_request.staff_notes }}
+{% endif %}
+Please ship the item(s) back to us, then enter the tracking details on
+your order page so we know it's on its way. Once we receive and inspect
+them, we'll process your refund and email you a confirmation.
+
+Thank you for shopping with {{ site_name }}.

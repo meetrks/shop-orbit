@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Your Cart — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="font-serif text-3xl text-navy-900">Your Cart</h1>
+        <a href="{% url 'catalog:product_list' %}" class="text-sm font-semibold text-sky-700 border border-sky-200 rounded-lg px-4 py-2 hover:bg-sky-50 transition-colors">
+            Shop More
+        </a>
+    </div>
+
+    {% if cart_items %}
+        <p class="text-sm text-sky-700 bg-sky-50 border border-sky-100 rounded-lg px-4 py-2.5 mb-6">
+            Buy 2 or more items — same product or different — and get 10% off (up to &#8377;50), applied automatically at checkout.
+        </p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-4">
+                {% for item in cart_items %}
+                    <div class="bg-white border border-sky-100 rounded-xl p-5 flex items-center gap-4">
+                        <a href="{{ item.product.get_absolute_url }}" class="shrink-0">
+                            {% if item.product.thumbnail %}
+                                <img src="{{ item.product.thumbnail.url }}" alt="{{ item.product.title }}" class="h-20 w-20 object-cover rounded-lg">
+                            {% else %}
+                                <div class="h-20 w-20 rounded-lg bg-sky-50"></div>
+                            {% endif %}
+                        </a>
+
+                        <div class="flex-1 min-w-0">
+                            <a href="{{ item.product.get_absolute_url }}" class="text-sm font-semibold text-navy-900 hover:text-sky-700 line-clamp-1">
+                                {{ item.product.title }}
+                            </a>
+                            {% if item.variant %}
+                                <p class="text-xs text-navy-900/60">{{ item.variant.label }}</p>
+                            {% endif %}
+                            <p class="text-xs text-navy-900/50 mb-2">SKU: {{ item.variant.sku|default:item.product.sku }}</p>
+                            <p class="text-sm font-semibold text-navy-900">&#8377;{{ item.unit_price|intcomma }}</p>
+                        </div>
+
+                        <form action="{% url 'cart:update_cart_item' item.id %}" method="post" class="flex items-center gap-2">
+                            {% csrf_token %}
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="0" max="{{ item.available_stock }}"
+                                   class="w-16 rounded-md border border-sky-200 px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-sky-400">
+                            <button type="submit" class="text-xs font-semibold px-3 py-1.5 rounded-md bg-sky-100 text-sky-700 hover:bg-sky-200">
+                                Update
+                            </button>
+                        </form>
+
+                        <div class="text-right w-24">
+                            <p class="text-sm font-bold text-navy-900">&#8377;{{ item.line_total|intcomma }}</p>
+                        </div>
+
+                        <form action="{% url 'cart:remove_cart_item' item.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-500 hover:text-red-700 p-2" title="Remove">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="bg-sky-100 border border-sky-200 rounded-2xl p-6 h-fit">
+                <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-4">Order Summary</h2>
+                <div class="flex items-center justify-between text-sm text-navy-900/70 mb-2">
+                    <span>Items ({{ cart.total_items }})</span>
+                    <span>&#8377;{{ cart.subtotal|intcomma }}</span>
+                </div>
+                <div class="border-t border-sky-200 my-4"></div>
+                <div class="flex items-center justify-between text-base font-semibold text-navy-900 mb-6">
+                    <span>Total</span>
+                    <span>&#8377;{{ cart.subtotal|intcomma }}</span>
+                </div>
+                <a href="{% url 'cart:checkout' %}" class="block text-center bg-sky-600 text-white font-semibold py-3.5 rounded-lg hover:bg-sky-700 transition-colors">
+                    Proceed to Checkout
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="bg-sky-50 border border-sky-100 rounded-xl p-12 text-center">
+            <p class="text-navy-900/60 mb-4">Your cart is empty.</p>
+            <a href="{% url 'catalog:product_list' %}" class="inline-block bg-sky-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-sky-700">
+                Start Shopping
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

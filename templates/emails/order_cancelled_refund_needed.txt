@@ -1,0 +1,10 @@
+Order {{ order.order_number }} was cancelled after payment had already been captured.
+
+Buyer: {{ order.shipping_full_name }} ({{ order.user.email }})
+Total paid: ₹{{ order.total_amount }}
+Cancelled by: {{ cancelled_by.email|default:"system" }}
+{% if reason %}Reason: {{ reason }}
+{% endif %}
+Stock has been restored automatically. The payment itself has NOT been
+refunded — go to Payments in the admin and use "Initiate refund" against
+this order's captured payment.

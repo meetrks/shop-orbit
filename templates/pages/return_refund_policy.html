@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Return &amp; Refund Policy — {{ site.name }}{% endblock %}
+{% block meta_description %}How returns and refunds work at {{ site.name }} — eligibility window, process, and refund timelines.{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold text-navy-900 mb-2">Return &amp; Refund Policy</h1>
+    <p class="text-sm text-navy-900/50 mb-10">Last updated: {% now "d F Y" %}</p>
+
+    <div class="prose-like space-y-8 text-sm leading-relaxed text-navy-900/80">
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">1. Return Window</h2>
+            <p>
+                You can request a return within <strong>{{ return_window_days }} days</strong> of your order
+                being marked delivered. Requests made after this window has closed can't be raised
+                through your account — please
+                <a href="{% url 'pages:contact' %}" class="text-sky-700 underline hover:text-sky-900">contact us</a>
+                if you have an exceptional circumstance.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">2. Eligible Reasons</h2>
+            <p>You can request a return for any of the following reasons, from your order page:</p>
+            <ul class="list-disc list-inside space-y-1 mt-2">
+                <li>The item is defective or arrived damaged</li>
+                <li>You received the wrong item</li>
+                <li>The item is not as described</li>
+                <li>You no longer need the item</li>
+            </ul>
+            <p class="mt-2">
+                Eligibility ultimately depends on the item's condition on inspection and is reviewed
+                case-by-case, consistent with applicable consumer protection law.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">3. How to Request a Return</h2>
+            <ol class="list-decimal list-inside space-y-1">
+                <li>Open the order from your account and select "Request Return."</li>
+                <li>Choose the reason and describe the issue.</li>
+                <li>Our team reviews the request and approves or rejects it, with a reason if rejected.</li>
+                <li>Once approved, ship the item back and enter the tracking details from your order page.</li>
+                <li>We inspect the item on receipt and initiate your refund.</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">4. Refunds</h2>
+            <p>
+                Approved refunds are issued to your original payment method via Razorpay. Refunds are
+                typically initiated within 2–3 business days of the returned item being received and
+                inspected, and can take a further 5–7 business days to reflect in your account depending on
+                your bank or payment provider. You'll receive an email confirmation once your refund is
+                processed.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">5. Non-Returnable Items</h2>
+            <p>
+                Items that are visibly used, altered, or missing their original packaging/tags may not qualify
+                for return. If a specific product isn't eligible for return, this is noted on its product page.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">6. Related Policies</h2>
+            <p>
+                To cancel an order before it ships, see our
+                <a href="{% url 'pages:cancellation_policy' %}" class="text-sky-700 underline hover:text-sky-900">Cancellation Policy</a>.
+                For delivery timelines and tracking, see our
+                <a href="{% url 'pages:shipping_policy' %}" class="text-sky-700 underline hover:text-sky-900">Shipping Policy</a>.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">7. Contact Us</h2>
+            <p>
+                Questions about a return or refund can be directed to us via our
+                <a href="{% url 'pages:contact' %}" class="text-sky-700 underline hover:text-sky-900">contact page</a>{% if site.company_email %}
+                or by emailing <a href="mailto:{{ site.company_email }}" class="text-sky-700 underline hover:text-sky-900">{{ site.company_email }}</a>{% endif %}.
+            </p>
+        </section>
+
+        {% if site.grievance_officer_name %}
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">8. Grievance Officer</h2>
+            <p>
+                In accordance with applicable Indian e-commerce and IT regulations, unresolved complaints can
+                be escalated to our Grievance Officer:
+            </p>
+            <p class="mt-2">
+                {{ site.grievance_officer_name }}<br>
+                {% if site.grievance_officer_email %}Email: <a href="mailto:{{ site.grievance_officer_email }}" class="text-sky-700 underline hover:text-sky-900">{{ site.grievance_officer_email }}</a><br>{% endif %}
+                {% if site.grievance_officer_phone %}Phone: {{ site.grievance_officer_phone }}<br>{% endif %}
+                We aim to acknowledge and resolve grievances within {{ site.grievance_response_days }} days.
+            </p>
+        </section>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

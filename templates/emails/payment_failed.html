@@ -1,0 +1,14 @@
+{% extends "emails/_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hi {{ order.shipping_full_name }},</p>
+<p style="margin:0 0 16px;">We weren't able to process your payment of <strong>&#8377;{{ payment.amount }}</strong>
+for order <strong>{{ order.order_number }}</strong>.</p>
+{% if payment.failure_reason %}
+<p style="margin:0 0 16px;color:#64748b;font-size:13px;">Reason: {{ payment.failure_reason }}</p>
+{% endif %}
+<p style="margin:0 0 16px;">You haven't been charged.</p>
+<p style="margin:0 0 16px;">
+<a href="{{ retry_url }}" style="display:inline-block;padding:10px 20px;background-color:#0284c7;color:#ffffff;border-radius:6px;text-decoration:none;font-weight:600;">Try Payment Again</a>
+</p>
+<p style="margin:16px 0 0;">If you keep running into trouble, just reply to this email and we'll help sort it out.</p>
+{% endblock %}

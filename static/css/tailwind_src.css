@@ -1,0 +1,112 @@
+/*
+ * Tailwind v4 entry point. Compiled to static/css/tailwind.css via
+ * `npm run build` (once) or `npm run watch` (during development) — see
+ * docs/infrastructure.md. The compiled output is gitignored; this source
+ * file is the one that's tracked and reviewed.
+ *
+ * Tailwind v4's CLI auto-detects template content (respecting .gitignore)
+ * with no explicit `content: []` config needed — this project has a
+ * single `templates/` directory, matching TEMPLATES[0]["DIRS"] in
+ * config/settings.py.
+ *
+ * BRAND REDESIGN (luxury-minimal jewellery theme): the entire site's
+ * templates use Tailwind's `navy`/`sky`/`slate`/`gray` token *names*
+ * (text-navy-900, bg-sky-600, border-slate-200, ...) throughout — around
+ * 40 of ~60 templates each. Rather than hunt down and rename every class
+ * across every template, this file redefines what those names *resolve
+ * to*: navy becomes deep charcoal, sky becomes champagne gold, slate and
+ * gray become warm neutrals. Every existing template re-themes correctly
+ * with zero template edits. `amber`/`red`/`emerald` are deliberately left
+ * as Tailwind's stock colors — they carry semantic meaning (warning/
+ * error/success) that shouldn't be visually confused with the brand
+ * accent gold.
+ */
+@import "tailwindcss";
+
+@theme {
+    /* Deep Charcoal — primary text, headings, nav, footer background.
+       Was a near-black navy; every `text-navy-900`, `bg-navy-900` etc.
+       site-wide picks this up automatically. */
+    --color-navy-900: #24221f;
+    --color-navy-950: #17150f;
+
+    /* Champagne Gold — accent, buttons, links, selected states, borders.
+       Replaces Tailwind's stock blue "sky" scale in place, so every
+       `bg-sky-600`, `text-sky-700`, `border-sky-100`, `hover:bg-sky-50`
+       already in templates becomes gold without touching those files.
+       Anchored on the brand's #C6A15B at the 500 stop; deliberately
+       muted/bronzed rather than bright yellow-gold at every stop. */
+    --color-sky-50: #faf6ed;
+    --color-sky-100: #f3ead3;
+    --color-sky-200: #e8d6a8;
+    --color-sky-300: #dbbe7c;
+    --color-sky-400: #d0ac63;
+    --color-sky-500: #c6a15b;
+    --color-sky-600: #ad8848;
+    --color-sky-700: #8c6d3a;
+    --color-sky-800: #715930;
+    --color-sky-900: #5c4828;
+    --color-sky-950: #332714;
+
+    /* Warm neutrals (secondary text, muted backgrounds, disabled states,
+       card borders) — replaces Tailwind's stock cool-blue "slate" scale.
+       slate-50 lands exactly on the brand's Warm Ivory (#FAF8F3), which
+       covers the site's `bg-slate-50` page background for free. Anchored
+       on the brand's Soft Taupe (#B8ADA0) around the 400 stop. */
+    --color-slate-50: #faf8f3;
+    --color-slate-100: #f2eee8;
+    --color-slate-200: #e4dcd1;
+    --color-slate-300: #cfc2b2;
+    --color-slate-400: #b8ada0;
+    --color-slate-500: #9c8f80;
+    --color-slate-600: #7f7365;
+    --color-slate-700: #665c50;
+    --color-slate-800: #4f473d;
+    --color-slate-900: #3a342c;
+    --color-slate-950: #211d18;
+
+    /* Tailwind's stock neutral "gray" scale — used almost exclusively by
+       crispy-forms' vendored input styling (border-gray-300, text-gray-700
+       on every text input site-wide), which isn't reachable via template
+       edits. Mirrors the warm-neutral direction above so form fields read
+       as part of the same palette instead of a cold default gray. */
+    --color-gray-50: #faf8f3;
+    --color-gray-100: #f2eee8;
+    --color-gray-200: #e4dcd1;
+    --color-gray-300: #cfc2b2;
+    --color-gray-400: #b8ada0;
+    --color-gray-500: #9c8f80;
+    --color-gray-600: #7f7365;
+    --color-gray-700: #3a342c;
+    --color-gray-800: #2c2721;
+    --color-gray-900: #211d18;
+
+    /* Explicit brand aliases, for new markup where the semantic name
+       reads more clearly than reaching for "sky"/"navy"/"slate". */
+    --color-ivory: #faf8f3;
+    --color-charcoal: #24221f;
+    --color-gold: #c6a15b;
+    --color-taupe: #b8ada0;
+
+    /* Cormorant Garamond for editorial headings (hero copy, section
+       titles) — used selectively via `font-serif`, not the site default.
+       Inter replaces Tailwind's default UI sans-serif stack everywhere
+       (nav, body, buttons, forms, prices) via `--font-sans`. */
+    --font-serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+    /* Tailwind v4's preflight leaves <button> (and button-type inputs) at
+       the browser default cursor (arrow, not pointer) — unlike <a>, which
+       browsers already give a pointer cursor for free. Restoring it here,
+       site-wide, beats hunting down every one of the ~50 <button> tags
+       across ~20 templates individually. Disabled buttons keep the
+       browser's default "not allowed to click this" cursor. */
+    button:not(:disabled),
+    [type="button"]:not(:disabled),
+    [type="reset"]:not(:disabled),
+    [type="submit"]:not(:disabled) {
+        cursor: pointer;
+    }
+}

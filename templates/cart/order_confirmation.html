@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Order {{ order.order_number }} — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block extra_head %}
+{% if fire_purchase_event %}
+<script>
+    gtag("event", "purchase", {
+        transaction_id: "{{ order.order_number|escapejs }}",
+        currency: "INR",
+        value: {{ order.total_amount }},
+        shipping: 0,
+        {% if order.discount_amount %}coupon: "{{ order.coupon_code|escapejs }}",{% endif %}
+        items: [
+            {% for item in order.items.all %}
+            {
+                item_id: "{{ item.variant_sku|default:item.product_sku|escapejs }}",
+                item_name: "{{ item.product_title|escapejs }}",
+                price: {{ item.unit_price }},
+                quantity: {{ item.quantity }},
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+    });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <div class="bg-sky-100 border border-sky-200 rounded-2xl p-6 mb-8 text-center">
+        {% if order.status == "payment_confirmed" %}
+            <p class="text-sky-700 font-semibold mb-1">Thank you! Your payment was successful.</p>
+        {% elif order.status == "cancelled" %}
+            <p class="text-red-700 font-semibold mb-1">This order has been cancelled.</p>
+        {% elif order.status == "expired" %}
+            <p class="text-amber-700 font-semibold mb-1">This order's payment window expired.</p>
+        {% endif %}
+        <h1 class="font-serif text-3xl text-navy-900">Order {{ order.order_number }}</h1>
+        <span class="inline-block mt-2 text-xs font-medium px-3 py-1 rounded-full
+            {% if order.status == "payment_confirmed" or order.status == "accepted" or order.status == "packed" or order.status == "shipped" or order.status == "delivered" %} bg-emerald-100 text-emerald-700
+            {% elif order.status == "cancelled" %} bg-red-100 text-red-700
+            {% else %} bg-amber-100 text-amber-700 {% endif %}">
+            {{ order.get_status_display }}
+        </span>
+    </div>
+
+    {% if order.status == "awaiting_confirmation" or order.status == "payment_failed" %}
+        <div class="mb-8 flex justify-end items-center gap-3" x-data="{ confirming: false }">
+            <template x-if="!confirming">
+                <div class="flex items-center gap-3">
+                    {% if order.status == "payment_failed" %}
+                        <form method="post" action="{% url 'cart:payment_retry' order.order_number %}">
+                            {% csrf_token %}
+                            <button type="submit" class="text-sm font-semibold text-white bg-sky-600 rounded-lg px-4 py-2 hover:bg-sky-700 transition-colors">
+                                Retry Payment
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'cart:checkout_payment' order.order_number %}"
+                           class="text-sm font-semibold text-white bg-sky-600 rounded-lg px-4 py-2 hover:bg-sky-700 transition-colors">
+                            Retry Payment
+                        </a>
+                    {% endif %}
+                    {% if order.status in order.CANCELLABLE_STATUSES %}
+                        <button type="button" @click="confirming = true"
+                                class="text-sm font-semibold text-red-600 border border-red-200 rounded-lg px-4 py-2 hover:bg-red-50 transition-colors">
+                            Cancel Order
+                        </button>
+                    {% endif %}
+                </div>
+            </template>
+            <template x-if="confirming">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="text-navy-900/70">Cancel this order? This can't be undone.</span>
+                    <button type="button" @click="confirming = false"
+                            class="font-semibold text-navy-900/70 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition-colors">
+                        No, keep it
+                    </button>
+                    <form method="post" action="{% url 'cart:cancel_order' order.order_number %}">
+                        {% csrf_token %}
+                        <button type="submit" class="font-semibold text-white bg-red-600 rounded-lg px-3 py-1.5 hover:bg-red-700 transition-colors">
+                            Yes, cancel
+                        </button>
+                    </form>
+                </div>
+            </template>
+        </div>
+    {% elif order.status in order.CANCELLABLE_STATUSES %}
+        <div class="mb-8 flex justify-end" x-data="{ confirming: false }">
+            <template x-if="!confirming">
+                <button type="button" @click="confirming = true"
+                        class="text-sm font-semibold text-red-600 border border-red-200 rounded-lg px-4 py-2 hover:bg-red-50 transition-colors">
+                    Cancel Order
+                </button>
+            </template>
+            <template x-if="confirming">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="text-navy-900/70">Cancel this order? This can't be undone.</span>
+                    <button type="button" @click="confirming = false"
+                            class="font-semibold text-navy-900/70 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition-colors">
+                        No, keep it
+                    </button>
+                    <form method="post" action="{% url 'cart:cancel_order' order.order_number %}">
+                        {% csrf_token %}
+                        <button type="submit" class="font-semibold text-white bg-red-600 rounded-lg px-3 py-1.5 hover:bg-red-700 transition-colors">
+                            Yes, cancel
+                        </button>
+                    </form>
+                </div>
+            </template>
+        </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 bg-white border border-sky-100 rounded-2xl shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-navy-900 mb-4">Order Items</h2>
+            <div class="divide-y divide-sky-50">
+                {% for item in order.items.all %}
+                    <div class="py-3 flex justify-between text-sm">
+                        <div>
+                            <p class="font-medium text-navy-900">{{ item.product_title }}{% if item.variant_label %} ({{ item.variant_label }}){% endif %}</p>
+                            <p class="text-xs text-navy-900/50">SKU: {{ item.variant_sku|default:item.product_sku }} &middot; Qty {{ item.quantity }}</p>
+                        </div>
+                        <p class="font-semibold text-navy-900">&#8377;{{ item.line_total|intcomma }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="border-t border-sky-100 mt-4 pt-4 space-y-2">
+                <div class="flex justify-between text-sm text-navy-900/70">
+                    <span>Subtotal</span>
+                    <span>&#8377;{{ order.subtotal_amount|intcomma }}</span>
+                </div>
+                {% if order.discount_amount %}
+                    <div class="flex justify-between text-sm text-sky-700">
+                        <span>Discount{% if order.coupon_code %} ({{ order.coupon_code }}){% endif %}</span>
+                        <span>&minus;&#8377;{{ order.discount_amount|intcomma }}</span>
+                    </div>
+                {% endif %}
+                <div class="flex justify-between text-base font-semibold text-navy-900 pt-2 border-t border-sky-100">
+                    <span>Total Paid</span>
+                    <span>&#8377;{{ order.total_amount|intcomma }}</span>
+                </div>
+            </div>
+
+            <h2 class="text-lg font-semibold text-navy-900 mt-8 mb-2">Shipping To</h2>
+            <p class="text-sm text-navy-900/70 leading-relaxed">
+                {{ order.shipping_full_name }}<br>
+                {{ order.shipping_address_line1 }}{% if order.shipping_address_line2 %}, {{ order.shipping_address_line2 }}{% endif %}<br>
+                {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}<br>
+                {{ order.shipping_country }}<br>
+                Phone: {{ order.shipping_phone_number }}
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-white border border-sky-100 rounded-2xl p-6">
+                <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-3">Documents</h2>
+                {% if order.invoice %}
+                    <a href="{% url 'fulfillment:invoice_download' order.order_number %}"
+                       class="block text-center bg-sky-50 border border-sky-200 text-sky-700 font-semibold py-2.5 rounded-lg hover:bg-sky-100 transition-colors mb-2">
+                        Download GST Invoice ({{ order.invoice.invoice_number }})
+                    </a>
+                {% endif %}
+                <p class="text-xs text-navy-900/50">A copy of your invoice has also been emailed to you.</p>
+            </div>
+
+            {% if order.shipment %}
+                <div class="bg-white border border-sky-100 rounded-2xl p-6">
+                    <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-3">Shipment</h2>
+                    <p class="text-sm text-navy-900/70 mb-1">Status: <span class="font-semibold text-navy-900">{{ order.shipment.get_status_display }}</span></p>
+                    {% if order.shipment.tracking_number %}
+                        <p class="text-sm text-navy-900/70 mb-1">
+                            Carrier: {{ order.shipment.get_carrier_display }}<br>
+                            Tracking #: <span class="font-mono">{{ order.shipment.tracking_number }}</span>
+                        </p>
+                    {% endif %}
+                    {% if order.shipment.tracking_url %}
+                        <a href="{{ order.shipment.tracking_url }}" target="_blank" rel="noopener"
+                           class="inline-block mt-2 text-sky-700 font-semibold text-sm hover:underline">
+                            Track your package &rarr;
+                        </a>
+                    {% else %}
+                        <p class="text-xs text-navy-900/50 mt-2">Tracking details will appear here once your order ships.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if can_request_return or return_requests %}
+                <div class="bg-white border border-sky-100 rounded-2xl p-6">
+                    <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-3">Returns</h2>
+                    {% for return_request in return_requests %}
+                        <div class="text-sm mb-3 pb-3 {% if not forloop.last %}border-b border-sky-50{% endif %}">
+                            <p class="font-medium text-navy-900">
+                                Return #{{ return_request.pk }}
+                                <span class="inline-block ml-1 text-xs font-medium px-2 py-0.5 rounded-full
+                                    {% if return_request.status == "rejected" or return_request.status == "cancelled" %} bg-red-100 text-red-700
+                                    {% elif return_request.status == "refunded" %} bg-emerald-100 text-emerald-700
+                                    {% else %} bg-amber-100 text-amber-700 {% endif %}">
+                                    {{ return_request.get_status_display }}
+                                </span>
+                            </p>
+                            <p class="text-xs text-navy-900/50">{{ return_request.get_reason_display }}</p>
+                            {% if return_request.status == "requested" %}
+                                <form method="post" action="{% url 'returns:cancel_return_request' return_request.pk %}" class="mt-1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-xs font-semibold text-red-600 hover:underline">Cancel request</button>
+                                </form>
+                            {% endif %}
+                            {% with return_shipment=return_request.return_shipment %}
+                                {% if return_shipment %}
+                                    {% if return_shipment.status == "awaiting_dispatch" or return_shipment.status == "shipped" %}
+                                        <form method="post" action="{% url 'returns:update_return_shipment' return_request.pk %}" class="mt-2 space-y-1">
+                                            {% csrf_token %}
+                                            <p class="text-xs font-medium text-navy-900">Ship it back &amp; enter tracking:</p>
+                                            <select name="carrier" class="text-xs border border-sky-200 rounded px-2 py-1 w-full">
+                                                {% for value, label in return_carrier_choices %}
+                                                    <option value="{{ value }}" {% if value == return_shipment.carrier %}selected{% endif %}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <input type="text" name="tracking_number" value="{{ return_shipment.tracking_number }}"
+                                                   placeholder="Tracking number" class="text-xs border border-sky-200 rounded px-2 py-1 w-full">
+                                            <input type="url" name="tracking_url" value="{{ return_shipment.tracking_url }}"
+                                                   placeholder="Tracking link (optional)" class="text-xs border border-sky-200 rounded px-2 py-1 w-full">
+                                            <button type="submit" class="text-xs font-semibold text-sky-700 hover:underline">Save tracking</button>
+                                        </form>
+                                    {% elif return_shipment.status == "delivered" %}
+                                        <p class="text-xs text-emerald-700 mt-1">Return parcel received back at our warehouse.</p>
+                                    {% elif return_shipment.status == "lost" %}
+                                        <p class="text-xs text-red-600 mt-1">This return shipment was marked lost — contact support.</p>
+                                    {% endif %}
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    {% endfor %}
+                    {% if can_request_return %}
+                        <a href="{% url 'returns:request_return' order.order_number %}"
+                           class="block text-center bg-sky-50 border border-sky-200 text-sky-700 font-semibold py-2.5 rounded-lg hover:bg-sky-100 transition-colors">
+                            Request a Return
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <a href="{% url 'accounts:profile' %}" class="block text-center bg-sky-600 text-white font-semibold py-3 rounded-lg hover:bg-sky-700 transition-colors">
+                View My Orders
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

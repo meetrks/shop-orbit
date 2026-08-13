@@ -1,0 +1,1 @@
+We've received your return request for order {{ order.order_number }} — {{ site_name }}

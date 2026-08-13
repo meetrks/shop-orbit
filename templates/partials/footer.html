@@ -1,0 +1,55 @@
+<footer class="bg-navy-900 text-slate-200 mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                {% if site.logo_url %}
+                    <img src="{{ site.logo_url }}" alt="{{ site.name }}" class="h-8 w-auto">
+                {% else %}
+                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-600 text-white font-serif text-xs">{{ site.initials }}</span>
+                {% endif %}
+                <span class="font-serif text-base tracking-wide text-white">{{ site.name }}</span>
+            </div>
+            <p class="text-sm text-slate-300 leading-relaxed mb-1">{{ site.tagline }}</p>
+            <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                Curated and shipped from {{ site.domain }}.
+            </p>
+            {% if site.company_phone %}<p class="text-sm text-slate-400"><a href="tel:{{ site.company_phone }}" class="hover:text-sky-400">{{ site.company_phone }}</a></p>{% endif %}
+            {% if site.company_email %}<p class="text-sm text-slate-400"><a href="mailto:{{ site.company_email }}" class="hover:text-sky-400">{{ site.company_email }}</a></p>{% endif %}
+            {% if site.company_address_lines %}
+                <p class="text-sm text-slate-400 leading-relaxed mt-1">
+                    {% for line in site.company_address_lines %}{{ line }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                </p>
+            {% endif %}
+        </div>
+
+        <div>
+            <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-3">Shop</h3>
+            <ul class="space-y-2 text-sm text-slate-400">
+                <li><a href="{% url 'catalog:product_list' %}" class="hover:text-sky-400">All Products</a></li>
+                <li><a href="{% url 'cart:cart_detail' %}" class="hover:text-sky-400">Your Cart</a></li>
+                <li><a href="{% url 'accounts:profile' %}" class="hover:text-sky-400">Your Account</a></li>
+                <li><a href="{% url 'pages:contact' %}" class="hover:text-sky-400">Contact Us</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-3">Legal</h3>
+            <ul class="space-y-2 text-sm text-slate-400">
+                <li><a href="{% url 'pages:privacy_policy' %}" class="hover:text-sky-400">Privacy Policy</a></li>
+                <li><a href="{% url 'pages:terms_conditions' %}" class="hover:text-sky-400">Terms &amp; Conditions</a></li>
+                <li><a href="{% url 'pages:shipping_policy' %}" class="hover:text-sky-400">Shipping Policy</a></li>
+                <li><a href="{% url 'pages:return_refund_policy' %}" class="hover:text-sky-400">Return &amp; Refund Policy</a></li>
+                <li><a href="{% url 'pages:cancellation_policy' %}" class="hover:text-sky-400">Cancellation Policy</a></li>
+            </ul>
+            {% if site.company_gst_number %}<p class="text-xs text-slate-500 mt-4">GSTIN: {{ site.company_gst_number }}</p>{% endif %}
+        </div>
+    </div>
+
+    <div class="border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <p>&copy; {% now "Y" %} {{ site.legal_name }} ({{ site.domain }}). All rights reserved.</p>
+            <p>Secure payments powered by Razorpay. See <a href="{% url 'pages:terms_conditions' %}" class="underline hover:text-sky-400">Terms &amp; Conditions</a> for details.</p>
+        </div>
+    </div>
+</footer>

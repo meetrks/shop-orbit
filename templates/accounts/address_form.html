@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if is_new %}Add Address{% else %}Edit Address{% endif %} — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <h1 class="font-serif text-3xl text-navy-900 mb-6">Your Account</h1>
+
+    {% include "accounts/_account_nav.html" with active_tab="addresses" %}
+
+    <div class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-navy-900 mb-4">{% if is_new %}Add a New Address{% else %}Edit Address{% endif %}</h2>
+        <form method="post" class="space-y-3">
+            {% csrf_token %}
+            {% crispy form %}
+            <div class="flex items-center gap-3 pt-2">
+                <button type="submit" class="bg-sky-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-sky-700 transition-colors">
+                    {% if is_new %}Save Address{% else %}Save Changes{% endif %}
+                </button>
+                <a href="{% url 'accounts:addresses' %}" class="text-sm font-medium text-navy-900/60 hover:text-navy-900">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

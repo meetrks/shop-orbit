@@ -1,0 +1,23 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+  <p>Paste one pincode per line (or comma-separated) to mark them all as unserviceable in one go.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <p>
+      <label for="id_postal_codes">Pincodes</label><br>
+      <textarea id="id_postal_codes" name="postal_codes" rows="10" cols="40" placeholder="560001&#10;560002&#10;560003"></textarea>
+    </p>
+    <p>
+      <label for="id_note">Note (applied to all)</label><br>
+      <input type="text" id="id_note" name="note" size="50" placeholder="e.g. Courier doesn't reach this area">
+    </p>
+    <div class="submit-row">
+      <input type="submit" value="Mark as unserviceable" class="default">
+      <a href="{% url 'admin:fulfillment_pincodeserviceability_changelist' %}" class="button cancel-link">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "emails/_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hi {{ order.shipping_full_name }},</p>
+<p style="margin:0 0 16px;">We attempted to refund <strong>&#8377;{{ refund.amount }}</strong> for order
+<strong>{{ order.order_number }}</strong>, but the refund didn't go through.</p>
+{% if refund.failure_reason %}
+<p style="margin:0 0 16px;color:#64748b;font-size:13px;">Reason: {{ refund.failure_reason }}</p>
+{% endif %}
+<p style="margin:0 0 16px;">Our team has been notified and will follow up with you shortly to resolve this.</p>
+<p style="margin:16px 0 0;">We're sorry for the inconvenience.</p>
+{% endblock %}

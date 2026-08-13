@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Complete Payment — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+    <div class="bg-white border border-sky-100 rounded-2xl shadow-sm p-8">
+        <h1 class="text-xl font-bold text-navy-900 mb-2">Complete Your Payment</h1>
+        <p class="text-sm text-navy-900/70 mb-1">Order {{ order.order_number }}</p>
+        <p class="text-3xl font-bold text-navy-900 my-6">&#8377;{{ payment.amount|intcomma }}</p>
+
+        <button id="rzp-pay-button" type="button" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-lg hover:bg-sky-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+            Pay Now
+        </button>
+        <p id="payment-status" class="text-sm text-navy-900/60 mt-4" role="status" aria-live="polite"></p>
+
+        <form id="csrf-form">{% csrf_token %}</form>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+(function () {
+    var csrfToken = document.querySelector("#csrf-form [name=csrfmiddlewaretoken]").value;
+    var statusEl = document.getElementById("payment-status");
+    var payButton = document.getElementById("rzp-pay-button");
+    var verifyUrl = "{% url 'payments:verify_payment' order.order_number %}";
+    var failedUrl = "{% url 'cart:payment_failed' order.order_number %}";
+
+    function setStatus(text) {
+        statusEl.textContent = text;
+    }
+
+    function verifyOnServer(response) {
+        setStatus("Confirming your payment…");
+        payButton.disabled = true;
+        fetch(verifyUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken,
+            },
+            body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+            }),
+        })
+            .then(function (res) {
+                if (res.status === 403) {
+                    setStatus("Your session expired. Please log in again, then check your order status from your account page.");
+                    return null;
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                if (!data) return;
+                window.location.href = data.redirect_url;
+            })
+            .catch(function () {
+                setStatus("We couldn't confirm your payment automatically. Please check your order status page in a moment.");
+                payButton.disabled = false;
+            });
+    }
+
+    var options = {
+        key: "{{ razorpay_key_id }}",
+        amount: {{ amount_in_paise }},
+        currency: "{{ payment.currency }}",
+        name: "{{ site.name|escapejs }}",
+        description: "Order {{ order.order_number }}",
+        order_id: "{{ payment.gateway_order_id }}",
+        prefill: {
+            name: "{{ order.shipping_full_name|escapejs }}",
+            email: "{{ order.user.email|escapejs }}",
+            contact: "{{ order.shipping_phone_number|escapejs }}"
+        },
+        notes: {
+            order_number: "{{ order.order_number }}"
+        },
+        theme: {
+            color: "#ad8848"
+        },
+        handler: function (response) {
+            verifyOnServer(response);
+        },
+        modal: {
+            ondismiss: function () {
+                setStatus("Payment window closed.");
+                window.location.href = failedUrl;
+            }
+        }
+    };
+
+    var rzp = new Razorpay(options);
+    rzp.on("payment.failed", function (response) {
+        var reason = response && response.error && response.error.description;
+        setStatus("Payment failed" + (reason ? ": " + reason : ".") + " You can try again.");
+    });
+
+    payButton.addEventListener("click", function () {
+        setStatus("Opening secure payment window…");
+        rzp.open();
+    });
+})();
+</script>
+{% endblock %}

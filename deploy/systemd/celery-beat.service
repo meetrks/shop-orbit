@@ -1,0 +1,30 @@
+# Installed to /etc/systemd/system/celery-beat.service by
+# scripts/install_server.sh. Schedules periodic tasks (currently just
+# inventory.tasks.release_expired_reservations every 5 minutes — see
+# CELERY_BEAT_SCHEDULE in config/settings/base.py) onto the queues the
+# celery-worker.service unit consumes. Exactly one beat process should
+# ever run at a time — don't scale this unit beyond one instance, or the
+# periodic task will fire multiple times per interval.
+
+[Unit]
+Description=shoporbit Celery beat scheduler
+After=network.target redis-server.service postgresql.service
+Requires=redis-server.service postgresql.service
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/srv/shoporbit/current
+EnvironmentFile=/srv/shoporbit/shared/.env
+Environment=DJANGO_SETTINGS_MODULE=config.settings.production
+ExecStart=/srv/shoporbit/shared/venv/bin/celery -A config beat -l info --schedule=/srv/shoporbit/shared/celerybeat-schedule
+Restart=on-failure
+RestartSec=5
+
+NoNewPrivileges=true
+ProtectSystem=full
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

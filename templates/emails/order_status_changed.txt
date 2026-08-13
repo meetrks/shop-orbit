@@ -1,0 +1,18 @@
+Hi {{ order.shipping_full_name }},
+
+Your order {{ order.order_number }} has been updated:
+
+  {{ previous_status_display }} -> {{ order.get_status_display }}
+
+{% if order.status == "payment_confirmed" %}We've confirmed your payment and your order is now being prepared.
+{% elif order.status == "shipped" %}Your order is on its way!
+{% elif order.status == "delivered" %}Your order has been delivered. We hope you love it.
+{% elif order.status == "payment_failed" %}Your payment didn't go through. You can retry it from your order page.
+{% elif order.status == "refunded" %}Your order has been fully refunded.
+{% elif order.status == "partially_refunded" %}Part of your order has been refunded.
+{% elif order.status == "cancelled" %}Your order has been cancelled. If this is unexpected, please contact us.
+{% elif order.status == "expired" %}We didn't receive your payment in time, so this order has been released. Feel free to check out again whenever you're ready.
+{% endif %}
+Order total: ₹{{ order.total_amount }} ({{ order.total_quantity }} item{{ order.total_quantity|pluralize }})
+
+Thank you for shopping with {{ site_name }}.

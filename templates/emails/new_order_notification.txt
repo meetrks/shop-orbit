@@ -1,0 +1,11 @@
+Hi,
+
+A new order has come in.
+
+Order: {{ order.order_number }}
+{% for item in items %}
+- {{ item.quantity }} x {{ item.product_title }}{% if item.variant_label %} ({{ item.variant_label }}){% endif %} ({{ item.variant_sku|default:item.product_sku }}) — ₹{{ item.line_total }}
+{% endfor %}
+
+The order is currently {{ order.get_status_display }}. View it in the admin:
+{{ admin_url }}

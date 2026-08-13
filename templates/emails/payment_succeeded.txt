@@ -1,0 +1,16 @@
+Hi {{ order.shipping_full_name }},
+
+Good news — we've received your payment and confirmed order {{ order.order_number }}.
+
+Order summary:
+{% for item in order.items.all %}
+- {{ item.quantity }} x {{ item.product_title }}{% if item.variant_label %} ({{ item.variant_label }}){% endif %} ({{ item.variant_sku|default:item.product_sku }}) — ₹{{ item.line_total }}
+{% endfor %}
+Subtotal: ₹{{ order.subtotal_amount }}
+{% if order.discount_amount %}Discount{% if order.coupon_code %} ({{ order.coupon_code }}){% endif %}: -₹{{ order.discount_amount }}
+{% endif %}Total Paid: ₹{{ order.total_amount }}
+Paid via: {{ payment.get_method_display|default:"Razorpay" }}
+
+Your GST invoice ({{ invoice.invoice_number }}) is ready: {{ invoice_url }}
+
+We'll email you again once your order ships. Thank you for shopping with {{ site_name }}.

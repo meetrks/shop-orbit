@@ -1,0 +1,13 @@
+A new return request needs review.
+
+Order: {{ order.order_number }}
+Buyer: {{ order.shipping_full_name }} ({{ order.user.email }})
+Reason: {{ return_request.get_reason_display }}
+{% if return_request.comments %}Comments: {{ return_request.comments }}
+{% endif %}
+Suggested refund amount: ₹{{ return_request.suggested_refund_amount }}
+
+Items:
+{% for line in return_request.lines.all %}  - {{ line.quantity }} x {{ line.order_item.product_title }}
+{% endfor %}
+Review it from the Returns admin.

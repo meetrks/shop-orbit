@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Profitability Report — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    {% include "accounts/_dashboard_nav.html" with active_tab="profitability" %}
+
+    <h1 class="text-2xl font-bold text-navy-900 mb-2">Profitability Report</h1>
+    <p class="text-sm text-navy-900/60 mb-6">
+        Per-product revenue and estimated costs, from orders with a captured payment.
+    </p>
+
+    <form method="get" class="flex flex-wrap items-end gap-3 mb-8 bg-white border border-sky-100 rounded-2xl p-4">
+        <div>
+            <label for="from" class="block text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">From</label>
+            <input type="date" id="from" name="from" value="{{ date_from|date:'Y-m-d' }}"
+                   class="rounded-md border border-sky-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400">
+        </div>
+        <div>
+            <label for="to" class="block text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">To</label>
+            <input type="date" id="to" name="to" value="{{ date_to|date:'Y-m-d' }}"
+                   class="rounded-md border border-sky-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400">
+        </div>
+        <button type="submit" class="bg-navy-900 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-navy-950 transition-colors">
+            Apply
+        </button>
+        {% if date_from or date_to %}
+            <a href="{% url 'accounts:profitability_report' %}" class="text-sm font-semibold text-navy-900/60 hover:underline px-2 py-2.5">
+                Clear (all time)
+            </a>
+        {% endif %}
+    </form>
+
+    {% if any_cost_price_missing %}
+        <div class="mb-8 rounded-lg px-4 py-3 text-sm font-medium border bg-amber-100 text-amber-800 border-amber-300">
+            Some products below have no cost price set (shown as 0) — their gross margin and net contribution are
+            overstated until a real cost price is entered on the product in the Django admin.
+        </div>
+    {% endif %}
+
+    <div class="grid grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
+        <div class="bg-white border border-sky-100 rounded-2xl p-5">
+            <p class="text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">Total Revenue (ex-GST)</p>
+            <p class="text-2xl font-bold text-navy-900">&#8377;{{ total_revenue|floatformat:2|intcomma }}</p>
+        </div>
+        <div class="bg-sky-100 border border-sky-200 rounded-2xl p-5">
+            <p class="text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">Total Net Contribution</p>
+            <p class="text-2xl font-bold text-navy-900">&#8377;{{ total_net_contribution|floatformat:2|intcomma }}</p>
+        </div>
+    </div>
+
+    <div class="bg-white border border-sky-100 rounded-2xl shadow-sm overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead>
+                <tr class="text-left text-xs font-semibold text-navy-900/50 uppercase tracking-wide border-b border-sky-100">
+                    <th class="px-4 py-3">Product</th>
+                    <th class="px-4 py-3 text-right">Units</th>
+                    <th class="px-4 py-3 text-right">Revenue</th>
+                    <th class="px-4 py-3 text-right">COGS</th>
+                    <th class="px-4 py-3 text-right">Gross Margin</th>
+                    <th class="px-4 py-3 text-right">Margin %</th>
+                    <th class="px-4 py-3 text-right">Gateway</th>
+                    <th class="px-4 py-3 text-right">Shipping</th>
+                    <th class="px-4 py-3 text-right">Packaging</th>
+                    <th class="px-4 py-3 text-right">Refunds</th>
+                    <th class="px-4 py-3 text-right">Net Contribution</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-sky-50">
+                {% for row in rows %}
+                    <tr>
+                        <td class="px-4 py-3">
+                            <p class="font-medium text-navy-900">
+                                {% if row.product %}
+                                    <a href="{% url 'catalog:product_detail' row.product.slug %}" class="hover:text-sky-700">{{ row.product_title }}</a>
+                                {% else %}
+                                    {{ row.product_title }} <span class="text-xs text-navy-900/40">(deleted)</span>
+                                {% endif %}
+                            </p>
+                            <p class="text-xs text-navy-900/50">
+                                {{ row.product_sku }}
+                                {% if row.cost_price_missing %}
+                                    <span class="text-amber-600 font-semibold">&middot; no cost price set</span>
+                                {% endif %}
+                            </p>
+                        </td>
+                        <td class="px-4 py-3 text-right">{{ row.units_sold }}</td>
+                        <td class="px-4 py-3 text-right">&#8377;{{ row.revenue|intcomma }}</td>
+                        <td class="px-4 py-3 text-right">&#8377;{{ row.cogs|intcomma }}</td>
+                        <td class="px-4 py-3 text-right">&#8377;{{ row.gross_margin|intcomma }}</td>
+                        <td class="px-4 py-3 text-right">{{ row.gross_margin_percent }}%</td>
+                        <td class="px-4 py-3 text-right text-navy-900/60">&#8377;{{ row.gateway_cost|intcomma }}</td>
+                        <td class="px-4 py-3 text-right text-navy-900/60">&#8377;{{ row.shipping_cost|intcomma }}</td>
+                        <td class="px-4 py-3 text-right text-navy-900/60">&#8377;{{ row.packaging_cost|intcomma }}</td>
+                        <td class="px-4 py-3 text-right text-navy-900/60">&#8377;{{ row.refund_cost|intcomma }}</td>
+                        <td class="px-4 py-3 text-right font-semibold {% if row.net_contribution < 0 %}text-red-600{% else %}text-navy-900{% endif %}">
+                            &#8377;{{ row.net_contribution|intcomma }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="11" class="px-4 py-8 text-center text-navy-900/50">
+                            No paid orders in this date range yet.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p class="text-xs text-navy-900/40 mt-4">
+        Revenue excludes GST. Gateway/shipping/packaging costs are store-wide estimates
+        (see <code>PAYMENT_GATEWAY_FEE_PERCENT</code>, <code>DEFAULT_SHIPPING_COST_PER_ORDER</code>,
+        <code>DEFAULT_PACKAGING_COST_PER_UNIT</code>), not per-transaction actuals.
+    </p>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Shipping Policy — {{ site.name }}{% endblock %}
+{% block meta_description %}How {{ site.name }} ships orders — dispatch times, delivery estimates, charges, and serviceable areas.{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold text-navy-900 mb-2">Shipping Policy</h1>
+    <p class="text-sm text-navy-900/50 mb-10">Last updated: {% now "d F Y" %}</p>
+
+    <div class="prose-like space-y-8 text-sm leading-relaxed text-navy-900/80">
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">1. Dispatch</h2>
+            <p>
+                Orders are dispatched once payment is confirmed, after a quality check of the item(s). You'll
+                receive an email as soon as your order ships, along with the carrier and tracking details —
+                the same information is always visible on your
+                <a href="{% url 'accounts:profile' %}" class="text-sky-700 underline hover:text-sky-900">order page</a>.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">2. Delivery Charges</h2>
+            <p>
+                Any delivery/handling charge for an item is shown as part of its listed price at checkout —
+                we don't add surprise shipping fees at the cart or payment step.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">3. Delivery Estimates</h2>
+            <p>
+                Delivery timelines depend on your location and the courier partner assigned to your order, and
+                are estimates, not guarantees — factors like weather, regional logistics disruptions, or
+                courier delays can affect them. You can track real-time progress using the tracking link/number
+                provided once your order ships.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">4. Serviceable Areas</h2>
+            <p>
+                We currently ship across serviceable pincodes within India. If your pincode isn't serviceable,
+                this will be flagged before you complete checkout. If you believe your area should be
+                serviceable but isn't, please
+                <a href="{% url 'pages:contact' %}" class="text-sky-700 underline hover:text-sky-900">contact us</a>.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">5. Order Tracking</h2>
+            <p>
+                Once your order ships, its carrier, tracking number, and tracking link are available on your
+                order page and included in your shipping confirmation email. Status updates (in transit, out
+                for delivery, delivered) are reflected there as they happen.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">6. Delivery Issues</h2>
+            <p>
+                If a delivery attempt fails, is delayed well beyond the estimate, or your package arrives
+                damaged, please
+                <a href="{% url 'pages:contact' %}" class="text-sky-700 underline hover:text-sky-900">contact us</a>
+                with your order number as soon as possible so we can follow up with the courier on your behalf.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">7. Related Policies</h2>
+            <p>
+                For cancelling an order before it ships, see our
+                <a href="{% url 'pages:cancellation_policy' %}" class="text-sky-700 underline hover:text-sky-900">Cancellation Policy</a>.
+                For returning a delivered item, see our
+                <a href="{% url 'pages:return_refund_policy' %}" class="text-sky-700 underline hover:text-sky-900">Return &amp; Refund Policy</a>.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">8. Contact Us</h2>
+            <p>
+                Questions about shipping can be directed to us via our
+                <a href="{% url 'pages:contact' %}" class="text-sky-700 underline hover:text-sky-900">contact page</a>{% if site.company_email %}
+                or by emailing <a href="mailto:{{ site.company_email }}" class="text-sky-700 underline hover:text-sky-900">{{ site.company_email }}</a>{% endif %}.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}

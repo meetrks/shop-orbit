@@ -1,0 +1,24 @@
+{% load static %}
+<div class="flex items-center justify-between mb-8">
+    <nav class="flex items-center gap-1 bg-white border border-sky-100 rounded-xl p-1">
+        <a href="{% url 'accounts:store_dashboard' %}"
+           class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors {% if active_tab == 'overview' %}bg-navy-900 text-white{% else %}text-navy-900/70 hover:bg-sky-50{% endif %}">
+            Overview
+        </a>
+        <a href="{% url 'accounts:store_dashboard_products' %}"
+           class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors {% if active_tab == 'products' %}bg-navy-900 text-white{% else %}text-navy-900/70 hover:bg-sky-50{% endif %}">
+            Products
+        </a>
+        <a href="{% url 'accounts:store_dashboard_orders' %}"
+           class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors {% if active_tab == 'orders' %}bg-navy-900 text-white{% else %}text-navy-900/70 hover:bg-sky-50{% endif %}">
+            Orders
+        </a>
+        <a href="{% url 'accounts:profitability_report' %}"
+           class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors {% if active_tab == 'profitability' %}bg-navy-900 text-white{% else %}text-navy-900/70 hover:bg-sky-50{% endif %}">
+            Profitability
+        </a>
+    </nav>
+    <a href="{% url 'picweight:upload' %}" class="bg-navy-900 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-navy-950 transition-colors">
+        Open PicWeight
+    </a>
+</div>

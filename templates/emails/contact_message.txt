@@ -1,0 +1,9 @@
+New enquiry submitted via the {{ site_name }} contact form:
+
+From: {{ contact_message.full_name }} <{{ contact_message.email }}>
+Phone: {{ contact_message.phone_number }}
+Subject: {{ contact_message.subject }}
+
+{{ contact_message.message }}
+
+Reply directly to this email, or manage it from the admin panel.

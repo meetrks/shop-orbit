@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}PicWeight — {{ site.name }}{% endblock %}
+{% block meta_description %}Standardize supplier product photos into clean, marketplace-ready listing images with {{ site.name }}'s PicWeight tool.{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-navy-900 mb-2">PicWeight Image Studio</h1>
+        <p class="text-sm text-navy-900/60 max-w-2xl">
+            Upload a raw supplier or product photo and PicWeight will isolate the item, center it on a clean
+            1000&times;1000 white canvas, and generate three ready-to-use listing variants: a cyan-bordered frame,
+            a blue-bordered frame, and a borderless ultra-zoom crop. Use whichever variant best matches your
+            marketplace's photo guidelines.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 bg-white border border-sky-100 rounded-2xl shadow-sm p-6">
+            <form method="post" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <button type="submit" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-lg hover:bg-sky-700 transition-colors">
+                    Generate Listing Images
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-sky-50 border border-sky-100 rounded-2xl p-6">
+            <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-3">Recent Jobs</h2>
+            {% if recent_jobs %}
+                <ul class="space-y-3">
+                    {% for job in recent_jobs %}
+                        <li>
+                            <a href="{% url 'picweight:result' job.pk %}" class="flex items-center gap-3 group">
+                                {% if job.source_image %}
+                                    <img src="{{ job.source_image.url }}" alt="" class="h-12 w-12 rounded-lg object-cover border border-sky-100">
+                                {% else %}
+                                    <div class="h-12 w-12 rounded-lg bg-sky-100"></div>
+                                {% endif %}
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-navy-900 group-hover:text-sky-700 truncate">Job #{{ job.pk }}</p>
+                                    <p class="text-xs text-navy-900/50">{{ job.get_status_display }} &middot; {{ job.created_at|date:"d M, H:i" }}</p>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-sm text-navy-900/60">No PicWeight jobs yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

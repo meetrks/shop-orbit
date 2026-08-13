@@ -1,0 +1,28 @@
+# Installed to /etc/systemd/system/celery-worker.service by
+# scripts/install_server.sh. Consumes both queues (see config/celery.py's
+# task_routes) — split into separate worker units per queue later if one
+# queue's workload ever needs to scale independently of the other.
+
+[Unit]
+Description=shoporbit Celery worker
+After=network.target redis-server.service postgresql.service
+Requires=redis-server.service postgresql.service
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/srv/shoporbit/current
+EnvironmentFile=/srv/shoporbit/shared/.env
+Environment=DJANGO_SETTINGS_MODULE=config.settings.production
+ExecStart=/srv/shoporbit/shared/venv/bin/celery -A config worker -Q default,emails -l info
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=60
+
+NoNewPrivileges=true
+ProtectSystem=full
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

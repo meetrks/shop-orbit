@@ -1,0 +1,54 @@
+[project]
+name = "shoporbit"
+version = "0.1.0"
+description = "A production-grade Django e-commerce storefront: catalog, cart, Razorpay checkout, fulfillment, and a staff dashboard."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = [
+    "celery>=5.6.3",
+    "crispy-tailwind>=1.0.3",
+    "django>=5.2.16",
+    "django-crispy-forms>=2.6",
+    "django-eav2>=1.8.2",
+    "django-environ>=0.14.0",
+    "djangorestframework>=3.17.1",
+    "gunicorn>=23.0.0",
+    "opencv-python-headless>=5.0.0.93",
+    "pillow>=12.3.0",
+    "psycopg[binary]>=3.3.4",
+    "python-barcode>=0.16.1",
+    "razorpay>=2.0.1",
+    "redis>=8.1.0",
+    "reportlab>=5.0.0",
+    "requests>=2.34.2",
+    "sentry-sdk>=2.67.1",
+]
+
+[dependency-groups]
+dev = [
+    "bandit>=1.8.0",
+    "pip-audit>=2.7.0",
+    "pre-commit>=4.0.0",
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+line-length = 119
+target-version = "py311"
+exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+# A deliberately modest rule set for a first-ever lint pass on an existing
+# codebase: real bugs (F) and import hygiene (E/W), not a full rewrite to
+# every stylistic rule ruff can enforce. Widen this later as a separate,
+# reviewed change — not silently as a side effect of adding CI.
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# development.py/production.py both intentionally `from .base import *` —
+# the standard Django settings-split pattern — so names like BASE_DIR/
+# DATABASES are "undefined" only from ruff's static-analysis point of
+# view, not actually at runtime.
+"config/settings/development.py" = ["F403", "F405"]
+"config/settings/production.py" = ["F403", "F405"]
