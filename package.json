@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
-    "alpinejs": "^3.15.12",
+    "alpinejs": "^3.16.0",
     "chart.js": "^4.4.0",
     "htmx.org": "^2.0.10",
     "tailwindcss": "^4.3.3"
