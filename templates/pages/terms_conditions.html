@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Terms &amp; Conditions — {{ site.name }}{% endblock %}
+{% block meta_description %}The terms governing your use of {{ site.name }}, including checkout.{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold text-navy-900 mb-2">Terms &amp; Conditions</h1>
+    <p class="text-sm text-navy-900/50 mb-10">Last updated: {% now "d F Y" %}</p>
+
+    <div class="prose-like space-y-8 text-sm leading-relaxed text-navy-900/80">
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">1. Acceptance of Terms</h2>
+            <p>
+                These Terms &amp; Conditions govern your access to and use of {{ site.domain }}, including
+                browsing the catalog, creating an account, and placing orders. By using this site you agree
+                to be bound by these terms. If you do not agree, please discontinue use of the site.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">2. Accounts</h2>
+            <p>
+                You must provide accurate registration information and keep your login credentials
+                confidential. You are responsible for all activity that occurs under your account.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">3. Product Listings</h2>
+            <p>
+                {{ site.legal_name }} makes reasonable efforts to ensure product listings — titles,
+                descriptions, pricing, stock levels, and images — are accurate, but makes no warranty as to
+                quality, authenticity, or fitness for a particular purpose beyond what's disclosed in the
+                listing.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">4. Orders and Payment</h2>
+            <p>
+                Payments are processed securely through Razorpay, supporting UPI, credit/debit cards, net
+                banking, and wallets. We never receive or store your card, bank, or UPI credentials — Razorpay
+                handles those directly. Your order is confirmed automatically as soon as payment is verified as
+                successful; if a payment fails or is not completed, your order is not placed and you have not
+                been charged.
+            </p>
+        </section>
+
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">5. Cancellations, Returns, and Refunds</h2>
+            <p>
+                You can cancel an order yourself from your order page while it is awaiting payment, has a
+                failed payment, or is paid but not yet shipped. Once an order has shipped, it can no longer be
+                cancelled through your account. Cancelling a paid order does not automatically refund it — our
+                team reviews and processes the refund to your original payment method after cancellation.
+                Return requests for delivered items should be raised as soon as possible; eligibility depends on
+                the order status and item condition and is handled on a case-by-case basis at our discretion,
+                consistent with applicable consumer protection law. See our
+                <a href="{% url 'pages:cancellation_policy' %}" class="text-sky-700 underline hover:text-sky-900">Cancellation Policy</a>
+                and <a href="{% url 'pages:return_refund_policy' %}" class="text-sky-700 underline hover:text-sky-900">Return &amp; Refund Policy</a>
+                for full details.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">6. Product Photography</h2>
+            <p>
+                Product photos on this site are prepared internally using PicWeight, an image-standardization
+                tool that isolates the item in a source photo, centers it on a clean canvas, and generates
+                bordered and zoomed presentation variants. These images are provided "as is," for illustrative
+                purposes — actual products may vary slightly in color or detail due to photography and display
+                differences.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">7. Prohibited Conduct</h2>
+            <ul class="list-disc list-inside space-y-1">
+                <li>Uploading images or content (e.g. product reviews) you do not have the right to use.</li>
+                <li>Attempting to circumvent site security, rate limits, or access controls.</li>
+                <li>Using the site to defraud another customer or third party.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">8. Limitation of Liability</h2>
+            <p>
+                To the maximum extent permitted by applicable law, {{ site.domain }} and its operators are not
+                liable for any indirect, incidental, special, or consequential damages arising from your use of
+                the site, including but not limited to loss of profits, data, or business opportunity. The
+                site and all tools, including PicWeight, are provided on an "as is" and "as available" basis
+                without warranties of any kind, express or implied.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">9. Indemnification</h2>
+            <p>
+                You agree to indemnify and hold {{ site.domain }} harmless from any claim, loss, or demand,
+                including reasonable legal fees, made by any third party arising out of your use of the site,
+                your violation of these terms, or your violation of any right of another party, including
+                intellectual-property rights.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">10. Changes to These Terms</h2>
+            <p>
+                We may revise these Terms &amp; Conditions from time to time. Continued use of the site after a
+                revision takes effect constitutes acceptance of the updated terms.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">11. Governing Law</h2>
+            <p>
+                These terms are governed by the laws of India, without regard to conflict-of-law principles.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">12. Contact Us</h2>
+            <p>
+                Questions about these Terms &amp; Conditions can be directed to us via our
+                <a href="{% url 'pages:contact' %}" class="text-sky-700 underline hover:text-sky-900">contact page</a>{% if site.company_email %}
+                or by emailing <a href="mailto:{{ site.company_email }}" class="text-sky-700 underline hover:text-sky-900">{{ site.company_email }}</a>{% endif %}.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}

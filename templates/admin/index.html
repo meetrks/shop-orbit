@@ -1,0 +1,110 @@
+{% extends "admin/index.html" %}
+{% load i18n humanize %}
+
+{% block content %}
+<div class="module" id="store-stats-module" style="margin-bottom: 20px;">
+    <h2>{% translate "Store Stats" %} — <a href="{% url 'accounts:store_dashboard' %}" style="color: #fff; text-decoration: underline;">{% translate "View full dashboard →" %}</a></h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; padding: 16px;">
+        <div><strong>{{ store_product_count }}</strong><br>Products</div>
+        <div><strong>{{ store_low_stock_count }}</strong><br>Low stock</div>
+        <div><strong>{{ store_out_of_stock_count }}</strong><br>Out of stock</div>
+        <div><strong>&#8377;{{ store_confirmed_revenue|floatformat:2|intcomma }}</strong><br>Confirmed revenue</div>
+        <div><strong>{{ store_awaiting_payment_count }}</strong><br>Awaiting payment</div>
+    </div>
+    {% if store_recent_order_items %}
+        <table>
+            <caption>{% translate "Recent order activity" %}</caption>
+            <thead>
+                <tr><th>Order</th><th>Item</th><th>Qty</th><th>Status</th><th>When</th></tr>
+            </thead>
+            <tbody>
+                {% for item in store_recent_order_items %}
+                    <tr>
+                        <td><a href="{% url 'admin:cart_order_change' item.order_id %}">{{ item.order.order_number }}</a></td>
+                        <td>{{ item.product_title }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.order.get_status_display }}</td>
+                        <td>{{ item.created_at|naturaltime }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p style="padding: 8px 16px;">
+            <a href="{% url 'admin:cart_order_changelist' %}">{% translate "View all orders →" %}</a>
+        </p>
+    {% endif %}
+    {% if store_recent_picweight_jobs %}
+        <table>
+            <caption>{% translate "Recent PicWeight jobs" %}</caption>
+            <thead>
+                <tr><th>Source photo</th><th>Product</th><th>Status</th><th>When</th></tr>
+            </thead>
+            <tbody>
+                {% for job in store_recent_picweight_jobs %}
+                    <tr>
+                        <td><a href="{% url 'admin:picweight_supplierimagejob_change' job.pk %}">Job #{{ job.pk }}</a></td>
+                        <td>{{ job.product|default:"—" }}</td>
+                        <td>{{ job.get_status_display }}</td>
+                        <td>{{ job.created_at|naturaltime }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+{{ block.super }}
+{% endblock %}
+
+{% block sidebar %}
+{% comment %}
+Django's own sidebar block (admin/index.html) also wraps its "Recent
+actions" module in a <div id="content-related">. Calling block.super
+here would render a second element with that same id, and since
+#content-related is float:right with a negative-margin trick, both
+copies land in the exact same box and overlap. So both modules are
+inlined into one wrapper instead of nesting a duplicate.
+{% endcomment %}
+<div id="content-related">
+    <div class="module" id="tools-module">
+        <h2>{% translate "Tools" %}</h2>
+        <div class="module">
+            <table>
+                <caption>
+                    <a href="{% url 'accounts:store_dashboard' %}" class="section" title="{% translate 'Store Dashboard' %}">{% translate "Store Dashboard" %}</a>
+                </caption>
+                <caption>
+                    <a href="{% url 'picweight:upload' %}" class="section" title="{% translate 'PicWeight Image Studio' %}">{% translate "PicWeight Image Studio" %}</a>
+                </caption>
+            </table>
+        </div>
+    </div>
+    <div class="module" id="recent-actions-module">
+        <h2>{% translate 'Recent actions' %}</h2>
+        <h3>{% translate 'My actions' %}</h3>
+            {% load log %}
+            {% get_admin_log 10 as admin_log for_user user %}
+            {% if not admin_log %}
+            <p>{% translate 'None available' %}</p>
+            {% else %}
+            <ul class="actionlist">
+            {% for entry in admin_log %}
+            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                <span class="visually-hidden">{% if entry.is_addition %}{% translate 'Added:' %}{% elif entry.is_change %}{% translate 'Changed:' %}{% elif entry.is_deletion %}{% translate 'Deleted:' %}{% endif %}</span>
+                {% if entry.is_deletion or not entry.get_admin_url %}
+                    {{ entry.object_repr }}
+                {% else %}
+                    <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                {% endif %}
+                <br>
+                {% if entry.content_type %}
+                    <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+                {% else %}
+                    <span class="mini quiet">{% translate 'Unknown content' %}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+            </ul>
+            {% endif %}
+    </div>
+</div>
+{% endblock %}

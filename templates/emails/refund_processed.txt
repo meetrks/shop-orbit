@@ -1,0 +1,12 @@
+Hi {{ order.shipping_full_name }},
+
+We've processed a refund of ₹{{ refund.amount }} for order {{ order.order_number }}.
+{% if refund.reason %}
+Reason: {{ refund.reason }}
+{% endif %}
+{% if payment.refund_status == "full" %}This covers the full amount you paid for this order.
+{% else %}This is a partial refund; ₹{{ remaining_amount }} of your original payment remains unrefunded.
+{% endif %}
+The refund should reflect in your original payment method within 5-7 business days, depending on your bank.
+
+Thank you for your patience, {{ site_name }}.

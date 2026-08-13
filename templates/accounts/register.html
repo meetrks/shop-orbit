@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create an Account — {{ site.name }}{% endblock %}
+{% block meta_description %}Register an account on {{ site.name }}.{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16">
+    <div class="bg-white border border-sky-100 rounded-2xl shadow-sm p-8">
+        <h1 class="font-serif text-3xl text-navy-900 mb-1">Create your account</h1>
+        <p class="text-sm text-navy-900/60 mb-6">Register to start shopping.</p>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-lg hover:bg-sky-700 transition-colors">
+                Register
+            </button>
+        </form>
+
+        <p class="text-sm text-navy-900/60 mt-6 text-center">
+            Already have an account?
+            <a href="{% url 'accounts:login' %}" class="font-semibold text-sky-600 hover:text-sky-800">Login here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Products — Store Dashboard — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    {% include "accounts/_dashboard_nav.html" with active_tab="products" %}
+
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-navy-900">Products</h1>
+        <p class="text-sm text-navy-900/50">{{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }}</p>
+    </div>
+
+    <div class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6">
+        {% if page_obj.object_list %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-xs font-semibold text-navy-900/50 uppercase tracking-wide border-b border-sky-100">
+                            <th class="py-2 pr-3">Product</th>
+                            <th class="py-2 pr-3">SKU</th>
+                            <th class="py-2 pr-3">Price</th>
+                            <th class="py-2 pr-3">Stock</th>
+                            <th class="py-2 pr-3">Status</th>
+                            <th class="py-2">Label</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-sky-50">
+                        {% for product in page_obj %}
+                            <tr>
+                                <td class="py-3 pr-3">
+                                    <a href="{{ product.get_absolute_url }}" class="font-medium text-navy-900 hover:text-sky-700">{{ product.title }}</a>
+                                    <p class="text-xs text-navy-900/50">{{ product.subcategory.category.department.name }} &middot; {{ product.subcategory.category.name }}</p>
+                                </td>
+                                <td class="py-3 pr-3 text-navy-900/70">{{ product.sku }}</td>
+                                <td class="py-3 pr-3 font-semibold text-navy-900">&#8377;{{ product.display_price|intcomma }}</td>
+                                <td class="py-3 pr-3 text-navy-900/70">
+                                    {{ product.stock_count }}
+                                    {% if product.reserved_count %}<span class="text-xs text-amber-600">({{ product.reserved_count }} held)</span>{% endif %}
+                                </td>
+                                <td class="py-3 pr-3">
+                                    {% if product.is_out_of_stock %}
+                                        <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">Out of stock</span>
+                                    {% elif product.is_low_stock %}
+                                        <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Low stock</span>
+                                    {% elif not product.is_active %}
+                                        <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Inactive</span>
+                                    {% else %}
+                                        <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">In stock</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3">
+                                    <a href="{% url 'catalog:product_barcode' product.slug %}" target="_blank" class="text-xs font-medium text-sky-600 hover:text-sky-700 hover:underline">
+                                        Print barcode
+                                    </a>
+                                </td>
+                            </tr>
+                            {% for variant in product.variants.all %}
+                                <tr class="bg-sky-50/50">
+                                    <td class="py-2 pr-3 pl-6 text-navy-900/60">&#8618; {{ variant.label }}</td>
+                                    <td class="py-2 pr-3 text-navy-900/60">{{ variant.sku }}</td>
+                                    <td class="py-2 pr-3 text-navy-900/60">&#8377;{{ variant.display_price|intcomma }}</td>
+                                    <td class="py-2 pr-3 text-navy-900/60">
+                                        {{ variant.stock_count }}
+                                        {% if variant.reserved_count %}<span class="text-xs text-amber-600">({{ variant.reserved_count }} held)</span>{% endif %}
+                                    </td>
+                                    <td class="py-2 pr-3">
+                                        {% if not variant.is_active %}
+                                            <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Inactive</span>
+                                        {% elif variant.is_out_of_stock %}
+                                            <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">Out of stock</span>
+                                        {% elif variant.is_low_stock %}
+                                            <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Low stock</span>
+                                        {% else %}
+                                            <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">In stock</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-2">
+                                        <a href="{% url 'catalog:variant_barcode' product.slug variant.pk %}" target="_blank" class="text-xs font-medium text-sky-600 hover:text-sky-700 hover:underline">
+                                            Print barcode
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "partials/pagination.html" %}
+        {% else %}
+            <p class="text-sm text-navy-900/60">No products listed yet — add one from the Django admin.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

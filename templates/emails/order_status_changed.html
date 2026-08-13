@@ -1,0 +1,28 @@
+{% extends "emails/_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hi {{ order.shipping_full_name }},</p>
+<p style="margin:0 0 16px;">Your order <strong>{{ order.order_number }}</strong> has been updated:</p>
+<p style="margin:0 0 20px;text-align:center;">
+<span style="display:inline-block;padding:6px 14px;border-radius:999px;background-color:#f1f5f9;color:#64748b;font-size:13px;">{{ previous_status_display }}</span>
+<span style="margin:0 6px;color:#94a3b8;">&rarr;</span>
+<span style="display:inline-block;padding:6px 14px;border-radius:999px;background-color:#e0f2fe;color:#0369a1;font-size:13px;font-weight:600;">{{ order.get_status_display }}</span>
+</p>
+{% if order.status == "payment_confirmed" %}
+<p style="margin:0 0 16px;">We've confirmed your payment and your order is now being prepared.</p>
+{% elif order.status == "shipped" %}
+<p style="margin:0 0 16px;">Your order is on its way!</p>
+{% elif order.status == "delivered" %}
+<p style="margin:0 0 16px;">Your order has been delivered. We hope you love it.</p>
+{% elif order.status == "payment_failed" %}
+<p style="margin:0 0 16px;">Your payment didn't go through. You can retry it from your order page.</p>
+{% elif order.status == "refunded" %}
+<p style="margin:0 0 16px;">Your order has been fully refunded.</p>
+{% elif order.status == "partially_refunded" %}
+<p style="margin:0 0 16px;">Part of your order has been refunded.</p>
+{% elif order.status == "cancelled" %}
+<p style="margin:0 0 16px;">Your order has been cancelled. If this is unexpected, please contact us.</p>
+{% elif order.status == "expired" %}
+<p style="margin:0 0 16px;">We didn't receive your payment in time, so this order has been released. Feel free to check out again whenever you're ready.</p>
+{% endif %}
+<p style="margin:0;color:#64748b;font-size:13px;">Order total: &#8377;{{ order.total_amount }} ({{ order.total_quantity }} item{{ order.total_quantity|pluralize }})</p>
+{% endblock %}

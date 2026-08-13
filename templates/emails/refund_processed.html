@@ -1,0 +1,15 @@
+{% extends "emails/_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hi {{ order.shipping_full_name }},</p>
+<p style="margin:0 0 16px;">We've processed a refund of <strong>&#8377;{{ refund.amount }}</strong> for order
+<strong>{{ order.order_number }}</strong>.</p>
+{% if refund.reason %}
+<p style="margin:0 0 16px;color:#64748b;font-size:13px;">Reason: {{ refund.reason }}</p>
+{% endif %}
+{% if payment.refund_status == "full" %}
+<p style="margin:0 0 16px;">This covers the full amount you paid for this order.</p>
+{% else %}
+<p style="margin:0 0 16px;">This is a partial refund; &#8377;{{ remaining_amount }} of your original payment remains unrefunded.</p>
+{% endif %}
+<p style="margin:16px 0 0;">The refund should reflect in your original payment method within 5-7 business days, depending on your bank.</p>
+{% endblock %}

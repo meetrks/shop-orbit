@@ -1,0 +1,37 @@
+# Installed to /etc/systemd/system/gunicorn.service by scripts/install_server.sh.
+# Serves the app itself; Nginx (deploy/nginx/shoporbit.conf) is the
+# only thing that talks to it, over the Unix socket gunicorn.conf.py binds.
+#
+# RuntimeDirectory=shoporbit creates /run/shoporbit (owned by the
+# `deploy` user) fresh on every start — matches gunicorn.conf.py's default
+# GUNICORN_SOCKET path.
+
+[Unit]
+Description=shoporbit Gunicorn application server
+After=network.target postgresql.service redis-server.service
+Requires=postgresql.service redis-server.service
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+RuntimeDirectory=shoporbit
+WorkingDirectory=/srv/shoporbit/current
+EnvironmentFile=/srv/shoporbit/shared/.env
+Environment=DJANGO_SETTINGS_MODULE=config.settings.production
+ExecStart=/srv/shoporbit/shared/venv/bin/gunicorn -c gunicorn.conf.py config.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+# Modest hardening — a compromised app process can't rewrite its own code
+# or escalate privileges. Loosen ProtectSystem if a future feature needs
+# to write somewhere under /srv/shoporbit/current at runtime (it
+# shouldn't — media/static both live under shared/, not current/).
+NoNewPrivileges=true
+ProtectSystem=full
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

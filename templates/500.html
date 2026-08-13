@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, follow">
+    <title>Something Went Wrong</title>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+</head>
+<body class="bg-slate-50 text-navy-900 min-h-screen flex items-center justify-center antialiased">
+    <div class="max-w-md mx-auto px-6 py-24 text-center">
+        <p class="text-sm font-semibold text-sky-600 mb-3">500</p>
+        <h1 class="text-3xl font-bold text-navy-900 mb-4">Something went wrong on our end</h1>
+        <p class="text-sm text-navy-900/60 mb-8">
+            We've been notified and are looking into it. Please try again in a few minutes.
+        </p>
+        <a href="/" class="inline-flex items-center rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-700 transition">
+            Go to Homepage
+        </a>
+    </div>
+</body>
+</html>

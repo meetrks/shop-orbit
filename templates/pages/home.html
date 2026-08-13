@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ site.name }} — {{ site.tagline }}{% endblock %}
+
+{% block content %}
+{% for banner in banners %}
+    <section class="bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div>
+                <p class="text-sky-700 font-semibold uppercase tracking-wide text-sm mb-3">{{ site.domain }}</p>
+                <h1 class="font-serif text-4xl sm:text-5xl text-navy-900 leading-tight mb-4">{{ banner.heading }}</h1>
+                {% if banner.subheading %}
+                    <p class="text-navy-900/70 text-lg mb-8 max-w-md">{{ banner.subheading }}</p>
+                {% endif %}
+                <div class="flex gap-3">
+                    {% if banner.cta_url %}
+                        <a href="{{ banner.cta_url }}" class="bg-sky-600 text-white font-semibold px-7 py-3.5 rounded-lg hover:bg-sky-700 transition-colors">
+                            {{ banner.cta_text|default:"Shop Now" }}
+                        </a>
+                    {% endif %}
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'accounts:register' %}" class="bg-white text-sky-700 font-semibold px-7 py-3.5 rounded-lg border border-sky-200 hover:bg-sky-50 transition-colors">
+                            Create an Account
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="hidden lg:flex justify-center">
+                <div class="w-full max-w-sm aspect-square rounded-2xl overflow-hidden bg-white/60 border border-sky-200 flex items-center justify-center shadow-inner">
+                    {% if banner.image %}
+                        <img src="{{ banner.image.url }}" alt="{{ banner.heading }}" class="w-full h-full object-cover">
+                    {% elif site.logo_url %}
+                        <img src="{{ site.logo_url }}" alt="{{ site.name }}" class="h-24 w-auto">
+                    {% else %}
+                        <span class="inline-flex h-24 w-24 items-center justify-center rounded-full bg-sky-600 text-white font-bold text-2xl">{{ site.initials }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% empty %}
+    <section class="bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div>
+                <p class="text-sky-700 font-semibold uppercase tracking-wide text-sm mb-3">{{ site.domain }}</p>
+                <h1 class="font-serif text-4xl sm:text-5xl text-navy-900 leading-tight mb-4">{{ site.tagline }}</h1>
+                <p class="text-navy-900/70 text-lg mb-8 max-w-md">Browse our full catalog and shop online.</p>
+                <div class="flex gap-3">
+                    <a href="{% url 'catalog:product_list' %}" class="bg-sky-600 text-white font-semibold px-7 py-3.5 rounded-lg hover:bg-sky-700 transition-colors">
+                        Shop All Products
+                    </a>
+                    <a href="{% url 'accounts:register' %}" class="bg-white text-sky-700 font-semibold px-7 py-3.5 rounded-lg border border-sky-200 hover:bg-sky-50 transition-colors">
+                        Create an Account
+                    </a>
+                </div>
+            </div>
+            <div class="hidden lg:flex justify-center">
+                <div class="w-full max-w-sm aspect-square rounded-full bg-white/60 border border-sky-200 flex items-center justify-center shadow-inner">
+                    {% if site.logo_url %}
+                        <img src="{{ site.logo_url }}" alt="{{ site.name }}" class="h-24 w-auto">
+                    {% else %}
+                        <span class="inline-flex h-24 w-24 items-center justify-center rounded-full bg-sky-600 text-white font-bold text-2xl">{{ site.initials }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endfor %}
+
+{% if shop_by_categories %}
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <h2 class="font-serif text-2xl text-navy-900 mb-6">Shop by Category</h2>
+        <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-5">
+            {% for subcategory in shop_by_categories %}
+                <a href="{{ subcategory.get_absolute_url }}" class="group flex flex-col items-center text-center">
+                    <div class="h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden border border-sky-100 bg-sky-50 flex items-center justify-center mb-2 group-hover:border-sky-300 transition-colors">
+                        {% if subcategory.icon %}
+                            <img src="{{ subcategory.icon.url }}" alt="{{ subcategory.name }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <span class="font-serif text-xl text-sky-600">{{ subcategory.name|slice:":1" }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="text-xs font-medium text-navy-900 group-hover:text-sky-700 line-clamp-2">{{ subcategory.name }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+
+{% if price_tiers %}
+    <section class="bg-sky-50 border-y border-sky-100 py-14">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="font-serif text-2xl text-navy-900 mb-6">Shop by Price</h2>
+            <div class="flex flex-wrap gap-3">
+                {% for tier in price_tiers %}
+                    <a href="{% url 'catalog:product_list' %}?max_price={{ tier.max_price }}"
+                       class="bg-white border border-sky-200 text-navy-900 font-semibold px-5 py-3 rounded-full hover:bg-sky-600 hover:text-white hover:border-sky-600 transition-colors">
+                        {{ tier.label }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endif %}
+
+{% for entry in sections %}
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="font-serif text-2xl text-navy-900">{{ entry.section.title }}</h2>
+            <a href="{% url 'catalog:product_list' %}" class="text-sm font-semibold text-sky-700 hover:text-sky-900">View all &rarr;</a>
+        </div>
+        {% if entry.section.subtitle %}
+            <p class="text-sm text-navy-900/60 mb-6">{{ entry.section.subtitle }}</p>
+        {% endif %}
+
+        {% if entry.products %}
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 {% if not entry.section.subtitle %}mt-6{% endif %}">
+                {% for product in entry.products %}
+                    {% include "partials/product_card.html" %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-sky-50 border border-sky-100 rounded-xl p-10 text-center text-navy-900/60">
+                No products to show here yet.
+            </div>
+        {% endif %}
+    </section>
+{% empty %}
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div class="bg-sky-50 border border-sky-100 rounded-xl p-10 text-center text-navy-900/60">
+            No products have been listed yet. Check back soon.
+        </div>
+    </section>
+{% endfor %}
+
+{% for entry in testimonial_sections %}
+    {% if entry.reviews %}
+        <section class="bg-sky-50 border-y border-sky-100 py-14">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="font-serif text-2xl text-navy-900 mb-2">{{ entry.section.title }}</h2>
+                {% if entry.section.subtitle %}
+                    <p class="text-sm text-navy-900/60 mb-6">{{ entry.section.subtitle }}</p>
+                {% endif %}
+
+                <div class="relative" x-data="{
+                    scrollByCard(direction) {
+                        const card = this.$refs.track.querySelector('[data-testimonial-card]');
+                        const amount = card ? card.offsetWidth + 20 : 300;
+                        this.$refs.track.scrollBy({ left: direction * amount, behavior: 'smooth' });
+                    }
+                }">
+                    <div x-ref="track" class="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 {% if not entry.section.subtitle %}mt-6{% endif %}">
+                        {% for review in entry.reviews %}
+                            <div data-testimonial-card class="snap-start shrink-0 w-[85%] sm:w-[45%] lg:w-[30%] bg-white border border-sky-100 rounded-xl p-6 flex flex-col">
+                                <div class="flex items-center gap-0.5 mb-3">
+                                    {% for i in "12345" %}
+                                        <svg viewBox="0 0 20 20" class="w-4 h-4 {% if forloop.counter <= review.rating %}fill-sky-500{% else %}fill-slate-200{% endif %}">
+                                            <path d="M10 1.3l2.7 5.6 6.1.6-4.6 4.2 1.3 6-5.5-3.1-5.5 3.1 1.3-6-4.6-4.2 6.1-.6z"/>
+                                        </svg>
+                                    {% endfor %}
+                                </div>
+                                {% if review.title %}
+                                    <p class="font-semibold text-navy-900 mb-1">{{ review.title }}</p>
+                                {% endif %}
+                                <p class="text-sm text-navy-900/70 flex-1">&ldquo;{{ review.comment }}&rdquo;</p>
+                                <div class="mt-4 pt-4 border-t border-sky-50">
+                                    <p class="text-sm font-semibold text-navy-900">{{ review.user.get_short_name }}</p>
+                                    <p class="text-xs text-navy-900/50">Verified buyer &middot; {{ review.product.title|truncatechars:40 }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if entry.reviews|length > 1 %}
+                        <button type="button" @click="scrollByCard(-1)" aria-label="Previous testimonial"
+                                class="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white border border-sky-200 shadow hover:bg-sky-50">
+                            <svg class="w-5 h-5 text-navy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <button type="button" @click="scrollByCard(1)" aria-label="Next testimonial"
+                                class="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white border border-sky-200 shadow hover:bg-sky-50">
+                            <svg class="w-5 h-5 text-navy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    {% endif %}
+{% endfor %}
+
+<section class="bg-white border-y border-sky-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+        <div>
+            <div class="mx-auto mb-3 h-12 w-12 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 font-serif">1</div>
+            <h3 class="font-semibold text-navy-900 mb-1">Browse the collection</h3>
+            <p class="text-sm text-navy-900/60">Filter by department, category and subcategory to find the perfect piece.</p>
+        </div>
+        <div>
+            <div class="mx-auto mb-3 h-12 w-12 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 font-serif">2</div>
+            <h3 class="font-semibold text-navy-900 mb-1">Add to your cart</h3>
+            <p class="text-sm text-navy-900/60">Build your order, review pricing, and proceed to checkout.</p>
+        </div>
+        <div>
+            <div class="mx-auto mb-3 h-12 w-12 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 font-serif">3</div>
+            <h3 class="font-semibold text-navy-900 mb-1">Pay securely</h3>
+            <p class="text-sm text-navy-900/60">Checkout with UPI, card, net banking, or wallet via Razorpay — your order is confirmed instantly.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

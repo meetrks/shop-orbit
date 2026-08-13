@@ -1,0 +1,92 @@
+name: CI
+
+# Runs on every push/PR. Postgres/Redis are GitHub Actions **service
+# containers** here purely as a CI convenience (an ephemeral test
+# database/broker for this job) — this is unrelated to the no-Docker
+# native-systemd production deployment described in docs/DEPLOYMENT.md.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: shoporbit
+          POSTGRES_PASSWORD: shoporbit
+          POSTGRES_DB: shoporbit
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U shoporbit"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      DJANGO_SECRET_KEY: ci-only-secret-key-not-used-anywhere-real
+      DJANGO_DEBUG: "True"
+      DATABASE_URL: postgres://shoporbit:shoporbit@localhost:5432/shoporbit
+      CELERY_BROKER_URL: redis://localhost:6379/0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-groups --frozen
+
+      - name: Set up Node (for the Tailwind build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Lint (ruff check)
+        run: uv run ruff check .
+
+      - name: Format check (ruff format)
+        run: uv run ruff format --check .
+
+      - name: Security scan (bandit)
+        run: uv run bandit -r . -x ./.venv,./node_modules,./static,./staticfiles --severity-level medium
+
+      - name: Dependency vulnerability scan (pip-audit)
+        run: |
+          uv export --no-dev --format requirements-txt > /tmp/requirements.txt
+          uv run pip-audit -r /tmp/requirements.txt
+
+      - name: Run tests
+        run: uv run python manage.py test
+
+      - name: Build frontend assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Collectstatic sanity check
+        run: uv run python manage.py collectstatic --noinput

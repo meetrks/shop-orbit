@@ -1,0 +1,34 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+  <p>
+    Payment {{ payment.pk }} for order
+    <a href="{% url 'admin:cart_order_change' payment.order_id %}">{{ payment.order.order_number }}</a>
+    — captured amount Rs. {{ payment.amount }}, already refunded Rs. {{ payment.refunded_amount }}.
+    Remaining refundable: <strong>Rs. {{ remaining }}</strong>.
+  </p>
+  {% if return_request %}
+  <p>
+    Initiating this refund for
+    <a href="{% url 'admin:returns_returnrequest_change' return_request.pk %}">return request #{{ return_request.pk }}</a>
+    — the suggested amount below is prefilled from its lines; adjust if needed.
+  </p>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+    </table>
+    <div class="submit-row">
+      <input type="submit" value="Initiate refund" class="default">
+      {% if return_request %}
+      <a href="{% url 'admin:returns_returnrequest_change' return_request.pk %}" class="button cancel-link">Cancel</a>
+      {% else %}
+      <a href="{% url 'admin:payments_payment_change' payment.pk %}" class="button cancel-link">Cancel</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{# Staff order actions for `order`, gated purely for UX — the real check is server-side in each action view + cart.services. #}
+<div class="flex flex-wrap items-center gap-2" x-data="{ cancelling: false }">
+    {% if order.status == 'payment_confirmed' %}
+        <form method="post" action="{% url 'accounts:store_dashboard_order_accept' order.order_number %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next_url }}">
+            <button type="submit" class="text-xs font-semibold px-3 py-1.5 rounded-md bg-sky-600 text-white hover:bg-sky-700">Accept</button>
+        </form>
+    {% elif order.status == 'accepted' %}
+        <form method="post" action="{% url 'accounts:store_dashboard_order_mark_packed' order.order_number %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next_url }}">
+            <button type="submit" class="text-xs font-semibold px-3 py-1.5 rounded-md bg-sky-600 text-white hover:bg-sky-700">Mark Packed</button>
+        </form>
+    {% elif order.status == 'packed' %}
+        <a href="{% url 'admin:fulfillment_shipment_changelist' %}?q={{ order.order_number }}"
+           class="text-xs font-semibold text-sky-700 hover:underline">
+            Assign shipment &rarr;
+        </a>
+    {% endif %}
+
+    {% if order.status in order.CANCELLABLE_STATUSES %}
+        <template x-if="!cancelling">
+            <button type="button" @click="cancelling = true"
+                    class="text-xs font-semibold px-3 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50">
+                Cancel
+            </button>
+        </template>
+        <template x-if="cancelling">
+            <form method="post" action="{% url 'accounts:store_dashboard_order_cancel' order.order_number %}" class="flex items-center gap-1">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next_url }}">
+                <input type="text" name="reason" required placeholder="Reason for cancelling"
+                       class="text-xs rounded-md border border-red-200 px-2 py-1.5 w-36 focus:outline-none focus:ring-2 focus:ring-red-300">
+                <button type="submit" class="text-xs font-semibold px-2 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700">
+                    Confirm
+                </button>
+                <button type="button" @click="cancelling = false" class="text-xs text-navy-900/50 hover:underline px-1">
+                    &times;
+                </button>
+            </form>
+        </template>
+    {% endif %}
+</div>

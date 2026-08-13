@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy — {{ site.name }}{% endblock %}
+{% block meta_description %}How {{ site.name }} collects, uses, and protects your personal information.{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold text-navy-900 mb-2">Privacy Policy</h1>
+    <p class="text-sm text-navy-900/50 mb-10">Last updated: {% now "d F Y" %}</p>
+
+    <div class="prose-like space-y-8 text-sm leading-relaxed text-navy-900/80">
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">1. Introduction</h2>
+            <p>
+                This Privacy Policy explains how {{ site.legal_name }} ("{{ site.domain }}", "we", "us", "our")
+                collects, uses, stores, and protects the personal information of customers who use this
+                website. By creating an account or otherwise using the site, you agree to the practices
+                described here.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">2. Information We Collect</h2>
+            <ul class="list-disc list-inside space-y-1">
+                <li><strong>Account information:</strong> full name, email address, phone number, and password (stored as a salted hash, never in plain text).</li>
+                <li><strong>Shipping and profile information:</strong> address lines, city, state, postal code, and country, provided when you update your profile or place an order.</li>
+                <li><strong>Order information:</strong> the products, quantities, and prices in each order, and any optional delivery note you provide at checkout.</li>
+                <li><strong>Product information:</strong> product listings, descriptions, prices, stock levels, and images, including source photos and generated variants processed through the PicWeight tool.</li>
+                <li><strong>Technical information:</strong> standard web server logs (IP address, browser type, pages visited, timestamps) and session/cookie data required to keep you logged in and your cart intact between visits.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">3. How We Use Your Information</h2>
+            <ul class="list-disc list-inside space-y-1">
+                <li>To create and maintain your account.</li>
+                <li>To process, fulfil, and communicate with you about your orders, including verifying payments through our payment gateway.</li>
+                <li>To maintain your shopping cart and order history across sessions.</li>
+                <li>To operate internal tools such as product listing management and the PicWeight image studio.</li>
+                <li>To respond to support requests and enforce our Terms &amp; Conditions.</li>
+                <li>To maintain the security and integrity of the site, including detecting and preventing fraud or abuse.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">4. Payment Data</h2>
+            <p>
+                Payments are processed by Razorpay, our third-party payment gateway. We do not collect, process,
+                or store your card numbers, bank account details, UPI PIN, or other payment credentials — those
+                are entered directly into Razorpay's secure checkout and never touch our servers. We retain only
+                the payment outcome (success/failure), the amount, the payment method used (e.g. UPI, card), and
+                gateway-issued transaction identifiers, used to confirm your order and for refunds and support.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">5. Image Uploads and PicWeight</h2>
+            <p>
+                Product photos processed through the PicWeight image studio are stored on our servers and
+                processed automatically (cropping, background centering, and border/zoom variant generation)
+                to produce clean, consistent listing photography. These images are visible to visitors
+                browsing the linked product listing. We do not sell or share these images with third parties
+                outside of normal site operation.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">6. Data Sharing</h2>
+            <p>
+                We do not sell your personal information. We may share limited data with service providers who
+                help us operate the site (for example, hosting and infrastructure providers), and only to the
+                extent necessary for them to provide that service, or when required to comply with applicable
+                law, legal process, or a valid government request.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">7. Data Retention</h2>
+            <p>
+                We retain account, order, and listing data for as long as your account remains active and for
+                a reasonable period afterward to comply with legal, accounting, and dispute-resolution
+                obligations. You may request deletion of your account and associated personal data at any time,
+                subject to records we are legally required to retain (such as order history for tax purposes).
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">8. Cookies and Sessions</h2>
+            <p>
+                We use strictly necessary cookies to keep you signed in, protect against cross-site request
+                forgery, and remember your cart between page loads. We do not use third-party advertising or
+                tracking cookies.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">9. Your Rights</h2>
+            <p>
+                You can review and update your profile and shipping information at any time from your account
+                page. You may request a copy of the personal data we hold about you, or request that we correct
+                or delete it, by contacting us using the details below.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">10. Security</h2>
+            <p>
+                We apply reasonable technical and organizational safeguards — including password hashing,
+                access controls, and HTTPS in production — to protect your information. No system is
+                completely secure, and we cannot guarantee absolute security of data transmitted to or stored
+                on this site.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">11. Changes to This Policy</h2>
+            <p>
+                We may update this Privacy Policy from time to time. Material changes will be reflected by
+                updating the "Last updated" date at the top of this page.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">12. Contact Us</h2>
+            <p>
+                Questions about this Privacy Policy or your personal data can be directed to us via our
+                <a href="{% url 'pages:contact' %}" class="text-sky-700 underline hover:text-sky-900">contact page</a>{% if site.company_email %}
+                or by emailing <a href="mailto:{{ site.company_email }}" class="text-sky-700 underline hover:text-sky-900">{{ site.company_email }}</a>{% endif %}.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}

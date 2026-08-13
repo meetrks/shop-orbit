@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, follow{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+    <p class="text-sm font-semibold text-sky-600 mb-3">404</p>
+    <h1 class="text-3xl font-bold text-navy-900 mb-4">We couldn't find that page</h1>
+    <p class="text-sm text-navy-900/60 mb-8">
+        The page you're looking for may have been moved, renamed, or no longer exists.
+        Try heading back to the homepage or browsing our full catalog.
+    </p>
+    <div class="flex items-center justify-center gap-3">
+        <a href="{% url 'pages:home' %}"
+           class="inline-flex items-center rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-700 transition">
+            Go to Homepage
+        </a>
+        <a href="{% url 'catalog:product_list' %}"
+           class="inline-flex items-center rounded-lg border border-sky-200 px-5 py-2.5 text-sm font-semibold text-navy-900 hover:bg-sky-50 transition">
+            Browse Products
+        </a>
+    </div>
+</div>
+{% endblock %}

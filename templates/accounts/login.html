@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16">
+    <div class="bg-white border border-sky-100 rounded-2xl shadow-sm p-8">
+        <h1 class="font-serif text-3xl text-navy-900 mb-1">Welcome back</h1>
+        <p class="text-sm text-navy-900/60 mb-6">Login to manage your cart, orders and profile.</p>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <button type="submit" class="w-full bg-sky-600 text-white font-semibold py-3 rounded-lg hover:bg-sky-700 transition-colors">
+                Login
+            </button>
+        </form>
+
+        <p class="text-sm text-navy-900/60 mt-6 text-center">
+            Don't have an account?
+            <a href="{% url 'accounts:register' %}" class="font-semibold text-sky-600 hover:text-sky-800">Register here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

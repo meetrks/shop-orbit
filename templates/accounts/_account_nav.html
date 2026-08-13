@@ -1,0 +1,18 @@
+<nav class="flex items-center gap-1 bg-white border border-sky-100 rounded-xl p-1 mb-8 overflow-x-auto">
+    <a href="{% url 'accounts:profile' %}"
+       class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap {% if active_tab == 'profile' %}bg-navy-900 text-white{% else %}text-navy-900/70 hover:bg-sky-50{% endif %}">
+        Profile details
+    </a>
+    <a href="{% url 'accounts:addresses' %}"
+       class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap {% if active_tab == 'addresses' %}bg-navy-900 text-white{% else %}text-navy-900/70 hover:bg-sky-50{% endif %}">
+        Addresses
+    </a>
+    <a href="{% url 'accounts:orders' %}"
+       class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap {% if active_tab == 'orders' %}bg-navy-900 text-white{% else %}text-navy-900/70 hover:bg-sky-50{% endif %}">
+        Orders
+    </a>
+    <a href="{% url 'cart:wishlist_detail' %}"
+       class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap {% if active_tab == 'wishlist' %}bg-navy-900 text-white{% else %}text-navy-900/70 hover:bg-sky-50{% endif %}">
+        Wishlist
+    </a>
+</nav>

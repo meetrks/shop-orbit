@@ -1,0 +1,84 @@
+/*
+Light-blue re-theme of the stock Django admin, matching the storefront's
+sky/navy palette. Django's admin CSS exposes its palette as CSS custom
+properties on :root (see django/contrib/admin/static/admin/css/base.css);
+overriding them here avoids having to fork any admin template markup.
+*/
+
+:root {
+    --primary: #0284c7;
+    --primary-fg: #f8fafc;
+    --secondary: #0369a1;
+    --accent: #0ea5e9;
+
+    --header-color: #f8fafc;
+    --header-branding-color: #ffffff;
+    --header-bg: #0f172a;
+    --header-link-color: #f0f9ff;
+
+    --breadcrumbs-fg: #e0f2fe;
+    --breadcrumbs-link-fg: #ffffff;
+    --breadcrumbs-bg: #0369a1;
+
+    --link-fg: #0284c7;
+    --link-hover-color: #0369a1;
+    --link-selected-fg: #0369a1;
+
+    --button-bg: #0284c7;
+    --button-fg: #fff;
+    --button-hover-bg: #0369a1;
+    --default-button-bg: #0284c7;
+    --default-button-hover-bg: #0369a1;
+
+    --object-tools-bg: #0284c7;
+    --object-tools-hover-bg: #0369a1;
+
+    --selected-bg: #e0f2fe;
+    --selected-row: #f0f9ff;
+
+    --font-family-primary: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+#header {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+}
+
+#branding h1,
+#branding h1 a:link,
+#branding h1 a:visited {
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+div.breadcrumbs {
+    font-weight: 500;
+}
+
+.module h2,
+.module caption,
+.inline-group h2 {
+    border-radius: 6px 6px 0 0;
+}
+
+.button,
+input[type="submit"],
+input[type="button"],
+.submit-row input,
+a.button {
+    border-radius: 8px !important;
+}
+
+#changelist-filter {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.dashboard .module table th,
+.dashboard .module table td {
+    border-radius: 0;
+}
+
+#content-main .paginator a:link,
+#content-main .paginator a:visited {
+    border-radius: 6px;
+}

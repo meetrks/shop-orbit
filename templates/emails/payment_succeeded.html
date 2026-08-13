@@ -1,0 +1,34 @@
+{% extends "emails/_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hi {{ order.shipping_full_name }},</p>
+<p style="margin:0 0 16px;">Good news — we've received your payment and confirmed order
+<strong>{{ order.order_number }}</strong>.</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border-collapse:collapse;">
+{% for item in order.items.all %}
+<tr style="border-bottom:1px solid #e2e8f0;">
+<td style="padding:8px 0;font-size:14px;">{{ item.quantity }} &times; {{ item.product_title }}{% if item.variant_label %} ({{ item.variant_label }}){% endif %}</td>
+<td style="padding:8px 0;font-size:14px;text-align:right;white-space:nowrap;">&#8377;{{ item.line_total }}</td>
+</tr>
+{% endfor %}
+<tr>
+<td style="padding:12px 0 0;">Subtotal</td>
+<td style="padding:12px 0 0;text-align:right;">&#8377;{{ order.subtotal_amount }}</td>
+</tr>
+{% if order.discount_amount %}
+<tr>
+<td style="padding:4px 0 0;color:#0369a1;">Discount{% if order.coupon_code %} ({{ order.coupon_code }}){% endif %}</td>
+<td style="padding:4px 0 0;color:#0369a1;text-align:right;">-&#8377;{{ order.discount_amount }}</td>
+</tr>
+{% endif %}
+<tr>
+<td style="padding:8px 0 0;font-weight:600;border-top:1px solid #e2e8f0;">Total Paid</td>
+<td style="padding:8px 0 0;font-weight:600;text-align:right;border-top:1px solid #e2e8f0;">&#8377;{{ order.total_amount }}</td>
+</tr>
+</table>
+
+<p style="margin:0 0 16px;">
+<a href="{{ invoice_url }}" style="display:inline-block;padding:10px 20px;background-color:#0284c7;color:#ffffff;border-radius:6px;text-decoration:none;font-weight:600;">Download GST Invoice</a>
+</p>
+<p style="margin:16px 0 0;">We'll email you again once your order ships. Thank you for shopping with {{ site_name }}.</p>
+{% endblock %}

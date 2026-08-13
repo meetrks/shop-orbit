@@ -1,0 +1,11 @@
+Good news!
+
+{{ product.title }}{% if variant %} ({{ variant.label }}){% endif %} is back in stock.
+
+₹{{ variant.display_price|default:product.display_price }}
+
+Shop it here: https://{{ site_domain }}{{ product.get_absolute_url }}
+
+This item can sell out again, so don't wait too long.
+
+{{ site_name }}

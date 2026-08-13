@@ -1,0 +1,41 @@
+# Local system hooks (language: system), not pre-commit's hosted
+# ruff-pre-commit/bandit repos — this runs the exact ruff/bandit versions
+# pinned in pyproject.toml/uv.lock via `uv run`, the same ones CI enforces
+# (.github/workflows/ci.yml), so there's never a version mismatch between
+# what you see locally and what CI reports.
+#
+# Install once (after `uv sync --all-groups`):
+#   uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check (lint, autofix)
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+        exclude: ^.*/migrations/
+
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+        exclude: ^.*/migrations/
+
+      - id: bandit
+        name: bandit (security scan)
+        # Mirrors .github/workflows/ci.yml's invocation exactly.
+        entry: uv run bandit -r . -x ./.venv,./node_modules,./static,./staticfiles --severity-level medium
+        language: system
+        pass_filenames: false
+        types: [python]
+
+      - id: test-on-main-push
+        name: Django test suite (only when pushing to main)
+        entry: scripts/pre_push_test_on_main.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

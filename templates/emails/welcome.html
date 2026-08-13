@@ -1,0 +1,7 @@
+{% extends "emails/_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hi {{ user.get_short_name }},</p>
+<p style="margin:0 0 16px;">Welcome to <strong>{{ site_name }}</strong>! Your account is ready.</p>
+<p style="margin:0 0 16px;">Browse our latest collections and enjoy a smooth, secure checkout with Razorpay — supporting UPI, cards, net banking, and wallets.</p>
+<p style="margin:0;color:#64748b;font-size:13px;">If you have any questions, just reply to this email — we're happy to help.</p>
+{% endblock %}

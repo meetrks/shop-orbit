@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ product.display_meta_title }} — {{ site.name }}{% endblock %}
+{% block meta_description %}{{ product.display_meta_description }}{% endblock %}
+{% block meta_keywords %}{{ product.meta_keywords|default:seo_defaults.keywords }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ product.display_meta_title }}{% endblock %}
+{% block og_description %}{{ product.display_meta_description }}{% endblock %}
+{% block twitter_title %}{{ product.display_meta_title }}{% endblock %}
+{% block twitter_description %}{{ product.display_meta_description }}{% endblock %}
+{% block og_image %}{% if product.thumbnail %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.thumbnail.url }}">{% endif %}{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "{{ product.title|escapejs }}",
+    "description": "{{ product.display_meta_description|escapejs }}",
+    "sku": "{{ product.sku|escapejs }}",
+    {% if product.thumbnail %}"image": ["{{ request.scheme }}://{{ request.get_host }}{{ product.thumbnail.url|escapejs }}"],{% endif %}
+    "brand": {"@type": "Brand", "name": "{{ site.legal_name|escapejs }}"},
+    "offers": {
+        "@type": "Offer",
+        "url": "{{ request.build_absolute_uri }}",
+        "priceCurrency": "INR",
+        "price": "{{ product.display_price }}",
+        "availability": "https://schema.org/{% if product.is_out_of_stock %}OutOfStock{% else %}InStock{% endif %}"
+    }{% if product.review_count %},
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "{{ product.avg_rating|floatformat:1 }}",
+        "reviewCount": "{{ product.review_count }}"
+    }{% endif %}
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'pages:home' %}"},
+        {"@type": "ListItem", "position": 2, "name": "{{ product.subcategory.category.department.name|escapejs }}", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'catalog:department_detail' product.subcategory.category.department.slug %}"},
+        {"@type": "ListItem", "position": 3, "name": "{{ product.subcategory.category.name|escapejs }}", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'catalog:category_detail' product.subcategory.category.department.slug product.subcategory.category.slug %}"},
+        {"@type": "ListItem", "position": 4, "name": "{{ product.subcategory.name|escapejs }}", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'catalog:subcategory_detail' product.subcategory.category.department.slug product.subcategory.category.slug product.subcategory.slug %}"},
+        {"@type": "ListItem", "position": 5, "name": "{{ product.title|escapejs }}", "item": "{{ request.build_absolute_uri }}"}
+    ]
+}
+</script>
+<script>
+    gtag("event", "view_item", {
+        currency: "INR",
+        value: {{ product.display_price }},
+        items: [{
+            item_id: "{{ product.sku|escapejs }}",
+            item_name: "{{ product.title|escapejs }}",
+            price: {{ product.display_price }},
+        }],
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <nav class="text-xs text-navy-900/50 mb-6">
+        <a href="{% url 'pages:home' %}" class="hover:text-sky-600">Home</a>
+        <span class="mx-1">/</span>
+        <a href="{% url 'catalog:subcategory_detail' product.subcategory.category.department.slug product.subcategory.category.slug product.subcategory.slug %}" class="hover:text-sky-600">
+            {{ product.subcategory.category.department.name }} / {{ product.subcategory.category.name }} / {{ product.subcategory.name }}
+        </a>
+        <span class="mx-1">/</span>
+        <span class="text-navy-900/70">{{ product.title }}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div>
+            <div id="product-image-wrap" class="bg-white border border-sky-100 rounded-xl overflow-hidden mb-1 relative">
+                {% if product.thumbnail %}
+                    <img id="product-main-image" src="{{ product.thumbnail.url }}" alt="{{ product.title }}"
+                         class="w-full aspect-square object-cover {% if zoom_image_url %}cursor-zoom-in{% endif %}">
+                {% else %}
+                    <div class="w-full aspect-square bg-sky-50 flex items-center justify-center text-sky-300">No image</div>
+                {% endif %}
+                {% if zoom_image_url %}
+                    <div id="product-zoom-pane"
+                         class="hidden lg:block absolute inset-0 bg-white bg-no-repeat pointer-events-none opacity-0 transition-opacity duration-150"
+                         style="background-image:url('{{ zoom_image_url }}'); background-size: 200%;"></div>
+                {% endif %}
+            </div>
+            {% if zoom_image_url %}
+                <p class="hidden lg:block text-xs text-navy-900/40 mb-3">Hover over the image to zoom in</p>
+            {% endif %}
+            {% if product.gallery_images.all %}
+                <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {% if product.thumbnail %}
+                        <button type="button" class="product-thumb aspect-square rounded-lg overflow-hidden border-2 border-sky-400 transition-colors" data-full="{{ product.thumbnail.url }}" data-original="true">
+                            <img src="{{ product.thumbnail.url }}" alt="{{ product.title }}" class="w-full h-full object-cover">
+                        </button>
+                    {% endif %}
+                    {% for image in product.gallery_images.all %}
+                        <button type="button" class="product-thumb aspect-square rounded-lg overflow-hidden border border-sky-100 transition-colors" data-full="{{ image.image.url }}">
+                            <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.title }}" class="w-full h-full object-cover">
+                        </button>
+                    {% endfor %}
+                </div>
+                <script>
+                (function () {
+                    var mainImage = document.getElementById("product-main-image");
+                    var pane = document.getElementById("product-zoom-pane");
+                    var thumbs = document.querySelectorAll(".product-thumb");
+                    if (!mainImage || !thumbs.length) return;
+                    thumbs.forEach(function (thumb) {
+                        thumb.addEventListener("click", function () {
+                            mainImage.src = thumb.dataset.full;
+                            var isOriginal = thumb.dataset.original === "true";
+                            mainImage.classList.toggle("cursor-zoom-in", isOriginal && !!pane);
+                            if (pane) {
+                                pane.style.display = isOriginal ? "" : "none";
+                            }
+                            thumbs.forEach(function (t) {
+                                t.classList.remove("border-sky-400", "border-2");
+                                t.classList.add("border", "border-sky-100");
+                            });
+                            thumb.classList.remove("border", "border-sky-100");
+                            thumb.classList.add("border-sky-400", "border-2");
+                        });
+                    });
+                })();
+                </script>
+            {% endif %}
+        </div>
+        {% if zoom_image_url %}
+            <script>
+            (function () {
+                var wrap = document.getElementById("product-image-wrap");
+                var pane = document.getElementById("product-zoom-pane");
+                if (!wrap || !pane) return;
+                wrap.addEventListener("mousemove", function (e) {
+                    if (pane.style.display === "none") return;
+                    var rect = wrap.getBoundingClientRect();
+                    var x = ((e.clientX - rect.left) / rect.width) * 100;
+                    var y = ((e.clientY - rect.top) / rect.height) * 100;
+                    pane.style.backgroundPosition = x + "% " + y + "%";
+                    pane.style.opacity = "1";
+                });
+                wrap.addEventListener("mouseleave", function () {
+                    pane.style.opacity = "0";
+                });
+            })();
+            </script>
+        {% endif %}
+
+        <div>
+            <p class="text-sm text-sky-600 font-medium uppercase tracking-wide mb-2">
+                {{ product.subcategory.category.department.name }} &middot; {{ product.subcategory.category.name }} &middot; {{ product.subcategory.name }}
+            </p>
+            <h1 class="font-serif text-4xl text-navy-900 mb-2">{{ product.title }}</h1>
+
+            <div class="mb-3">
+                {% include "partials/star_rating.html" with rating=product.avg_rating review_count=product.review_count show_count=True %}
+            </div>
+
+            <div class="flex items-baseline gap-3 mb-2">
+                <span id="variant-price" class="text-2xl font-semibold text-navy-900">&#8377;{{ product.display_price|intcomma }}</span>
+                {% if product.discount_price %}
+                    <span class="text-lg text-slate-400 line-through">&#8377;{{ product.full_price|intcomma }}</span>
+                    <span class="text-sm font-semibold text-sky-600">Save {{ product.discount_percent }}%</span>
+                {% endif %}
+            </div>
+
+            <p id="variant-stock" class="text-xs font-medium mb-6
+                {% if product.is_out_of_stock %} text-red-600
+                {% elif product.is_low_stock %} text-amber-600
+                {% else %} text-sky-700 {% endif %}">
+                {% if product.is_out_of_stock %}
+                    Out of stock
+                {% elif product.is_low_stock %}
+                    Only {{ product.available_to_sell }} left in stock — order soon
+                {% else %}
+                    In stock ({{ product.available_to_sell }} available)
+                {% endif %}
+            </p>
+
+            {% if user.is_authenticated %}
+                <form action="{% url 'cart:add_to_cart' product.pk %}" method="post" class="mb-8 js-track-add-to-cart"
+                      data-item-id="{{ product.sku }}" data-item-name="{{ product.title }}" data-price="{{ product.display_price }}">
+                    {% csrf_token %}
+                    {% if variants %}
+                        <div class="mb-3">
+                            <label for="variant-select" class="block text-xs font-semibold text-navy-900/70 uppercase tracking-wide mb-2">Choose an option</label>
+                            <select id="variant-select" name="variant_id" required
+                                    class="w-full rounded-md border border-sky-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400">
+                                {% for variant in variants %}
+                                    <option value="{{ variant.pk }}"
+                                            data-price="{{ variant.display_price }}"
+                                            data-stock="{{ variant.available_to_sell }}"
+                                            data-low-stock-threshold="{{ variant.low_stock_threshold }}"
+                                            {% if variant.is_out_of_stock %}disabled{% endif %}>
+                                        {{ variant.label }}{% if variant.is_out_of_stock %} — Out of stock{% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+                    <div class="flex items-center gap-3">
+                        <input type="number" name="quantity" value="1" min="1" max="{{ product.available_to_sell }}"
+                               class="w-20 rounded-md border border-sky-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                               {% if not variants and product.is_out_of_stock %}disabled{% endif %}>
+                        <button type="submit" {% if not variants and product.is_out_of_stock %}disabled{% endif %}
+                            class="px-7 py-3.5 rounded-lg font-semibold transition-colors
+                            {% if not variants and product.is_out_of_stock %} bg-slate-200 text-slate-400 cursor-not-allowed
+                            {% else %} bg-sky-600 text-white hover:bg-sky-700 {% endif %}">
+                            Add to Cart
+                        </button>
+                    </div>
+                </form>
+                <form action="{% url 'cart:toggle_wishlist' product.pk %}" method="post" class="mb-8 -mt-6">
+                    {% csrf_token %}
+                    <button type="submit" class="inline-flex items-center gap-2 text-sm font-medium text-navy-900/70 hover:text-red-500">
+                        {% if product.pk in wishlisted_product_ids %}
+                            <svg class="w-5 h-5 fill-red-500" viewBox="0 0 20 20"><path d="M10 17.5s-6.5-4.03-8.5-7.86C-.1 6.6 1.3 3.5 4.4 3.1c1.8-.24 3.3.7 4.1 2.02C9.3 3.8 10.8 2.86 12.6 3.1c3.1.4 4.5 3.5 2.9 6.54C16.5 13.47 10 17.5 10 17.5z"/></svg>
+                            Saved to wishlist
+                        {% else %}
+                            <svg class="w-5 h-5 fill-none stroke-current" stroke-width="1.8" viewBox="0 0 20 20"><path d="M10 17.5s-6.5-4.03-8.5-7.86C-.1 6.6 1.3 3.5 4.4 3.1c1.8-.24 3.3.7 4.1 2.02C9.3 3.8 10.8 2.86 12.6 3.1c3.1.4 4.5 3.5 2.9 6.54C16.5 13.47 10 17.5 10 17.5z"/></svg>
+                            Save to wishlist
+                        {% endif %}
+                    </button>
+                </form>
+                {% if site.whatsapp_number %}
+                    <a href="https://wa.me/{{ site.whatsapp_number }}?text={{ whatsapp_message|urlencode }}" target="_blank" rel="noopener"
+                       class="inline-flex items-center gap-2 text-sm font-medium text-[#25D366] hover:brightness-90 -mt-6 mb-8">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.79.47 3.47 1.29 4.92L2 22l5.29-1.39c1.4.76 3 1.2 4.71 1.2h.01c5.46 0 9.9-4.45 9.9-9.9C21.91 6.45 17.5 2 12.04 2zm5.83 14.07c-.25.7-1.45 1.34-2 1.42-.53.09-1.2.13-1.94-.12-.45-.15-1.02-.34-1.76-.66-3.1-1.34-5.12-4.46-5.28-4.67-.15-.21-1.26-1.68-1.26-3.2s.79-2.27 1.07-2.58c.28-.31.6-.39.8-.39.2 0 .4 0 .58.01.19.01.44-.07.68.53.25.6.85 2.08.92 2.23.07.15.12.33.02.53-.1.2-.15.33-.3.5-.15.18-.31.4-.45.53-.15.15-.3.31-.13.61.17.31.76 1.26 1.64 2.04 1.13.99 2.07 1.3 2.38 1.45.31.15.49.13.67-.08.19-.2.79-.92.99-1.24.2-.31.4-.26.68-.16.28.1 1.77.84 2.07 1 .3.15.5.23.57.36.08.13.08.72-.17 1.42z"/>
+                        </svg>
+                        Ask about this item on WhatsApp
+                    </a>
+                {% endif %}
+                {% if variants %}
+                    <script>
+                    (function () {
+                        var select = document.getElementById("variant-select");
+                        var priceEl = document.getElementById("variant-price");
+                        var stockEl = document.getElementById("variant-stock");
+                        function sync() {
+                            var opt = select.options[select.selectedIndex];
+                            var price = parseFloat(opt.dataset.price);
+                            var stock = parseInt(opt.dataset.stock, 10);
+                            var lowStock = parseInt(opt.dataset.lowStockThreshold, 10);
+                            if (priceEl && !isNaN(price)) {
+                                priceEl.textContent = "₹" + price.toLocaleString("en-IN");
+                            }
+                            if (stockEl) {
+                                stockEl.className = "text-xs font-medium mb-6";
+                                if (stock <= 0) {
+                                    stockEl.textContent = "Out of stock";
+                                    stockEl.classList.add("text-red-600");
+                                } else if (stock <= lowStock) {
+                                    stockEl.textContent = "Only " + stock + " left in stock — order soon";
+                                    stockEl.classList.add("text-amber-600");
+                                } else {
+                                    stockEl.textContent = "In stock (" + stock + " available)";
+                                    stockEl.classList.add("text-sky-700");
+                                }
+                            }
+                            var alertWrap = document.getElementById("stock-alert-wrap");
+                            var alertVariantInput = document.getElementById("stock-alert-variant-id");
+                            if (alertVariantInput) {
+                                alertVariantInput.value = opt.value;
+                            }
+                            if (alertWrap) {
+                                alertWrap.style.display = stock <= 0 ? "" : "none";
+                            }
+                        }
+                        select.addEventListener("change", sync);
+                        sync();
+                    })();
+                    </script>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="inline-block px-6 py-3 rounded-lg font-semibold bg-sky-600 text-white hover:bg-sky-700 mb-8">
+                    Login to Add to Cart
+                </a>
+            {% endif %}
+
+            {% if product.is_out_of_stock or variants %}
+                <div id="stock-alert-wrap" class="mb-8" {% if not product.is_out_of_stock %}style="display:none"{% endif %}>
+                    <p class="text-xs font-medium text-navy-900/60 mb-2">Notify me when back in stock</p>
+                    <form action="{% url 'catalog:request_stock_alert' product.slug %}" method="post" class="flex items-stretch gap-2 max-w-sm">
+                        {% csrf_token %}
+                        {% if variants %}
+                            <input type="hidden" id="stock-alert-variant-id" name="variant_id" value="{{ variants.0.pk }}">
+                        {% endif %}
+                        {% if not user.is_authenticated %}
+                            <input type="email" name="email" required placeholder="you@example.com"
+                                   class="flex-1 min-w-0 rounded-md border border-sky-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400">
+                        {% endif %}
+                        <button type="submit" class="px-4 py-2 rounded-md bg-navy-900 text-white text-sm font-semibold hover:bg-navy-950 whitespace-nowrap">
+                            Notify me
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <div class="border-t border-sky-100 pt-7">
+                <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-3">Description</h2>
+                <p class="text-sm text-navy-900/70 leading-relaxed whitespace-pre-line">
+                    {{ product.description|default:"No description provided for this item." }}
+                </p>
+            </div>
+
+            {% with custom_properties=product.eav.get_values %}
+                {% if custom_properties %}
+                    <div class="border-t border-sky-100 pt-7 mt-7">
+                        <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-3">Additional details</h2>
+                        <dl class="text-sm divide-y divide-sky-100">
+                            {% for property in custom_properties %}
+                                <div class="flex justify-between gap-4 py-2">
+                                    <dt class="text-navy-900/50">{{ property.attribute.name }}</dt>
+                                    <dd class="text-navy-900/80 text-right">{{ property.value }}</dd>
+                                </div>
+                            {% endfor %}
+                        </dl>
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="border-t border-sky-100 pt-7 mt-7 text-xs text-navy-900/50">
+                <p>SKU: {{ product.sku }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-16 max-w-3xl">
+        <h2 class="font-serif text-2xl text-navy-900 mb-6">
+            Reviews {% if product.review_count %}<span class="text-navy-900/40 font-sans text-base">({{ product.review_count }})</span>{% endif %}
+        </h2>
+
+        {% if review_form %}
+            <div class="bg-white border border-sky-100 rounded-xl p-5 mb-8">
+                <p class="text-sm font-semibold text-navy-900 mb-3">Write a review</p>
+                <form action="{% url 'catalog:submit_review' product.slug %}" method="post">
+                    {{ review_form|crispy }}
+                    <button type="submit" class="mt-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-sky-600 text-white hover:bg-sky-700">
+                        Submit review
+                    </button>
+                </form>
+            </div>
+        {% elif user_review %}
+            <p class="text-sm text-navy-900/50 mb-8">You've already reviewed this product — thanks!</p>
+        {% elif not user.is_authenticated %}
+            <p class="text-sm text-navy-900/50 mb-8">
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="text-sky-600 hover:underline">Log in</a> to write a review.
+            </p>
+        {% elif not has_purchased %}
+            <p class="text-sm text-navy-900/50 mb-8">Only customers who've purchased this product can write a review.</p>
+        {% endif %}
+
+        {% for review in reviews %}
+            <div class="border-t border-sky-100 py-5">
+                <div class="flex items-center justify-between mb-1">
+                    {% include "partials/star_rating.html" with rating=review.rating %}
+                    <span class="text-xs text-navy-900/40">{{ review.created_at|date:"d M Y" }}</span>
+                </div>
+                {% if review.title %}<p class="text-sm font-semibold text-navy-900 mt-1">{{ review.title }}</p>{% endif %}
+                {% if review.comment %}<p class="text-sm text-navy-900/70 mt-1 leading-relaxed">{{ review.comment }}</p>{% endif %}
+                <p class="text-xs text-navy-900/40 mt-2">
+                    {{ review.user.get_short_name }}
+                    {% if review.is_verified_purchase %}<span class="text-sky-600 font-medium">&middot; Verified purchase</span>{% endif %}
+                </p>
+            </div>
+        {% empty %}
+            <p class="text-sm text-navy-900/50">No reviews yet — be the first to share your thoughts.</p>
+        {% endfor %}
+    </div>
+
+    {% if related_products %}
+        <div class="mt-16">
+            <h2 class="font-serif text-2xl text-navy-900 mb-6">You may also like</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+                {% for product in related_products %}
+                    {% include "partials/product_card.html" %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

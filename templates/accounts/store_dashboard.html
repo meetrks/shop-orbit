@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Store Dashboard — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block extra_head %}
+    <script src="{% static 'js/vendor/chart.min.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    {% include "accounts/_dashboard_nav.html" with active_tab="overview" %}
+
+    <h1 class="text-2xl font-bold text-navy-900 mb-8">Store Dashboard</h1>
+
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+        <div class="bg-white border border-sky-100 rounded-2xl p-5">
+            <p class="text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">Products</p>
+            <p class="text-2xl font-bold text-navy-900">{{ store_product_count }}</p>
+        </div>
+        <div class="bg-white border border-sky-100 rounded-2xl p-5">
+            <p class="text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">Low Stock</p>
+            <p class="text-2xl font-bold text-amber-600">{{ store_low_stock_count }}</p>
+        </div>
+        <div class="bg-white border border-sky-100 rounded-2xl p-5">
+            <p class="text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">Out of Stock</p>
+            <p class="text-2xl font-bold text-red-600">{{ store_out_of_stock_count }}</p>
+        </div>
+        <div class="bg-white border border-sky-100 rounded-2xl p-5">
+            <p class="text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">Awaiting Payment</p>
+            <p class="text-2xl font-bold text-navy-900">{{ store_awaiting_payment_count }}</p>
+        </div>
+        <div class="bg-sky-100 border border-sky-200 rounded-2xl p-5">
+            <p class="text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">Confirmed Revenue</p>
+            <p class="text-2xl font-bold text-navy-900">&#8377;{{ store_confirmed_revenue|floatformat:2|intcomma }}</p>
+        </div>
+    </div>
+
+    <div class="mb-10">
+        <h2 class="text-lg font-semibold text-navy-900 mb-4">Reports</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white border border-sky-100 rounded-2xl shadow-sm p-6">
+                <h3 class="text-sm font-semibold text-navy-900/70 uppercase tracking-wide mb-4">Revenue — last 30 days</h3>
+                <canvas id="revenue-chart" height="120"></canvas>
+            </div>
+            <div class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6">
+                <h3 class="text-sm font-semibold text-navy-900/70 uppercase tracking-wide mb-4">Stock health</h3>
+                <canvas id="stock-chart"></canvas>
+            </div>
+        </div>
+        <div class="mt-6 bg-white border border-sky-100 rounded-2xl shadow-sm p-6">
+            <h3 class="text-sm font-semibold text-navy-900/70 uppercase tracking-wide mb-4">Orders by status (all time)</h3>
+            <div class="max-w-md">
+                <canvas id="status-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {{ revenue_chart_labels|json_script:"revenue-chart-labels" }}
+    {{ revenue_chart_totals|json_script:"revenue-chart-totals" }}
+    {{ status_chart_labels|json_script:"status-chart-labels" }}
+    {{ status_chart_counts|json_script:"status-chart-counts" }}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-8">
+            <div class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-navy-900">Recent Order Activity</h2>
+                    <a href="{% url 'accounts:store_dashboard_orders' %}" class="text-sm font-semibold text-sky-700 hover:underline">
+                        View all orders &rarr;
+                    </a>
+                </div>
+                {% if recent_order_items %}
+                    <div class="divide-y divide-sky-50">
+                        {% for item in recent_order_items %}
+                            <a href="{% url 'accounts:store_dashboard_order_detail' item.order.order_number %}"
+                               class="py-3 flex items-center justify-between hover:bg-sky-50/50 -mx-2 px-2 rounded-lg transition-colors">
+                                <div>
+                                    <p class="text-sm font-medium text-navy-900">{{ item.product_title }}</p>
+                                    <p class="text-xs text-navy-900/50">Order {{ item.order.order_number }} &middot; Qty {{ item.quantity }} &middot; {{ item.created_at|date:"d M Y" }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-semibold text-navy-900">&#8377;{{ item.line_total|intcomma }}</p>
+                                    <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full
+                                        {% if item.order.status == 'payment_confirmed' or item.order.status == 'accepted' or item.order.status == 'packed' or item.order.status == 'shipped' or item.order.status == 'delivered' %} bg-sky-100 text-sky-700
+                                        {% elif item.order.status == 'cancelled' %} bg-red-100 text-red-700
+                                        {% else %} bg-amber-100 text-amber-700 {% endif %}">
+                                        {{ item.order.get_status_display }}
+                                    </span>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-navy-900/60">No orders yet.</p>
+                {% endif %}
+            </div>
+
+            <div class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6 text-center">
+                <p class="text-sm text-navy-900/60 mb-3">
+                    {{ store_product_count }} product{{ store_product_count|pluralize }} in the catalog.
+                </p>
+                <a href="{% url 'accounts:store_dashboard_products' %}" class="text-sm font-semibold text-sky-700 hover:underline">
+                    View all products &rarr;
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-sky-50 border border-sky-100 rounded-2xl p-6 h-fit">
+            <h2 class="text-sm font-semibold text-navy-900 uppercase tracking-wide mb-4">Recent PicWeight Jobs</h2>
+            {% if recent_picweight_jobs %}
+                <ul class="space-y-3">
+                    {% for job in recent_picweight_jobs %}
+                        <li>
+                            <a href="{% url 'picweight:result' job.pk %}" class="flex items-center gap-3 group">
+                                {% if job.source_image %}
+                                    <img src="{{ job.source_image.url }}" alt="" class="h-12 w-12 rounded-lg object-cover border border-sky-100">
+                                {% else %}
+                                    <div class="h-12 w-12 rounded-lg bg-sky-100"></div>
+                                {% endif %}
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-navy-900 group-hover:text-sky-700 truncate">Job #{{ job.pk }}</p>
+                                    <p class="text-xs text-navy-900/50">{{ job.get_status_display }} &middot; {{ job.created_at|date:"d M, H:i" }}</p>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-sm text-navy-900/60">No PicWeight jobs yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var revenueLabels = JSON.parse(document.getElementById("revenue-chart-labels").textContent);
+    var revenueTotals = JSON.parse(document.getElementById("revenue-chart-totals").textContent);
+    var statusLabels = JSON.parse(document.getElementById("status-chart-labels").textContent);
+    var statusCounts = JSON.parse(document.getElementById("status-chart-counts").textContent);
+
+    new Chart(document.getElementById("revenue-chart"), {
+        type: "line",
+        data: {
+            labels: revenueLabels,
+            datasets: [{
+                label: "Confirmed revenue (₹)",
+                data: revenueTotals,
+                borderColor: "#0284c7",
+                backgroundColor: "rgba(2, 132, 199, 0.1)",
+                fill: true,
+                tension: 0.25,
+                pointRadius: 2,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } },
+        },
+    });
+
+    new Chart(document.getElementById("stock-chart"), {
+        type: "doughnut",
+        data: {
+            labels: ["In stock", "Low stock", "Out of stock"],
+            datasets: [{
+                data: [
+                    {{ store_product_count|default:0 }} - {{ store_low_stock_count|default:0 }} - {{ store_out_of_stock_count|default:0 }},
+                    {{ store_low_stock_count|default:0 }},
+                    {{ store_out_of_stock_count|default:0 }},
+                ],
+                backgroundColor: ["#0ea5e9", "#f59e0b", "#ef4444"],
+            }],
+        },
+        options: { responsive: true, plugins: { legend: { position: "bottom" } } },
+    });
+
+    if (statusLabels.length) {
+        new Chart(document.getElementById("status-chart"), {
+            type: "doughnut",
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusCounts,
+                    backgroundColor: ["#0284c7", "#0ea5e9", "#38bdf8", "#f59e0b", "#ef4444", "#94a3b8", "#22c55e", "#a855f7", "#f472b6"],
+                }],
+            },
+            options: { responsive: true, plugins: { legend: { position: "bottom" } } },
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+  <p>
+    Order:
+    <a href="{% url 'admin:cart_order_change' return_request.order_id %}">{{ return_request.order.order_number }}</a>
+    &middot; Buyer: {{ return_request.user.email }}
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Restock?</th>
+          <th>Condition note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in lines %}
+          <tr>
+            <td>{{ line.order_item.product_title }}</td>
+            <td>{{ line.quantity }}</td>
+            <td><input type="checkbox" name="restock_{{ line.pk }}"></td>
+            <td><input type="text" name="condition_note_{{ line.pk }}" size="40" placeholder="e.g. damaged in transit"></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p>Uncheck "Restock" for anything damaged, defective, or otherwise not resellable.</p>
+    <div class="submit-row">
+      <input type="submit" value="Record receipt" class="default">
+      <a href="{% url 'admin:returns_returnrequest_change' return_request.pk %}" class="button cancel-link">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

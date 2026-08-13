@@ -1,0 +1,1 @@
+Delivery attempt failed for order {{ shipment.order.order_number }} — {{ site_name }}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Cancellation Policy — {{ site.name }}{% endblock %}
+{% block meta_description %}When and how you can cancel an order at {{ site.name }}.{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold text-navy-900 mb-2">Cancellation Policy</h1>
+    <p class="text-sm text-navy-900/50 mb-10">Last updated: {% now "d F Y" %}</p>
+
+    <div class="prose-like space-y-8 text-sm leading-relaxed text-navy-900/80">
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">1. When You Can Cancel</h2>
+            <p>
+                You can cancel an order yourself, from your order page, at any point while it's:
+            </p>
+            <ul class="list-disc list-inside space-y-1 mt-2">
+                <li>Awaiting payment</li>
+                <li>Showing a failed payment</li>
+                <li>Paid but not yet shipped</li>
+            </ul>
+            <p class="mt-2">
+                Once an order has shipped, it can no longer be cancelled through your account — at that point,
+                our <a href="{% url 'pages:return_refund_policy' %}" class="text-sky-700 underline hover:text-sky-900">Return &amp; Refund Policy</a>
+                applies instead once the item is delivered.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">2. Refunds on Cancellation</h2>
+            <p>
+                Cancelling an order that hasn't been paid for doesn't involve a charge or refund. If you
+                cancel an order that has already been paid, the cancellation itself doesn't trigger an
+                automatic refund — our team reviews the cancelled order and processes the refund to your
+                original payment method shortly after.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">3. Cancelling a Return Request</h2>
+            <p>
+                If you've raised a return request but change your mind, you can cancel it yourself from your
+                order page as long as it's still in "Requested" status — once our team has approved or
+                rejected it, cancellation is no longer self-service; contact us instead.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-navy-900 mb-2">4. Contact Us</h2>
+            <p>
+                Questions about cancelling an order can be directed to us via our
+                <a href="{% url 'pages:contact' %}" class="text-sky-700 underline hover:text-sky-900">contact page</a>{% if site.company_email %}
+                or by emailing <a href="mailto:{{ site.company_email }}" class="text-sky-700 underline hover:text-sky-900">{{ site.company_email }}</a>{% endif %}.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}
