@@ -6,8 +6,9 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import User
+from catalog.icons import get_category_icon
 from catalog.models import Category, Department, Product, Review, Subcategory
-from pages.models import HomePriceTier, HomeTestimonialSection, HomeTestimonialSectionReview
+from pages.models import HomeBanner, HomePriceTier, HomeTestimonialSection, HomeTestimonialSectionReview
 
 
 class PolicyPagesTestCase(TestCase):
@@ -107,6 +108,31 @@ class PwaTestCase(TestCase):
 
         self.assertContains(response, reverse("pages:manifest"))
         self.assertContains(response, reverse("pages:service_worker"))
+
+
+class HomeHeroBannerTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(email="buyer@example.com", password="pw", full_name="Buyer One")
+
+    def test_create_account_shown_to_anonymous_visitor_with_no_banners(self):
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Create an Account")
+
+    def test_create_account_hidden_from_logged_in_user_with_no_banners(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Create an Account")
+
+    def test_create_account_hidden_from_logged_in_user_with_a_banner(self):
+        HomeBanner.objects.create(heading="Welcome", is_active=True)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Create an Account")
 
 
 class SitemapTestCase(TestCase):
@@ -264,19 +290,45 @@ class HomeShopByCategoryTestCase(TestCase):
         self.assertContains(response, "Sarees")
         self.assertContains(response, subcategory.get_absolute_url())
 
-    def test_falls_back_to_initial_badge_when_no_icon(self):
+    def test_falls_back_to_a_matched_svg_icon_when_no_icon_uploaded(self):
         Subcategory.objects.create(category=self.category, name="Sarees")
 
         response = self.client.get(reverse("pages:home"))
 
-        # No icon uploaded — falls back to the first letter, not a broken <img>.
+        # No icon uploaded — falls back to a colored SVG (see
+        # catalog.icons.get_category_icon), not a broken <img>.
         self.assertNotContains(response, "<img")
-        self.assertContains(response, ">S<")
+        self.assertContains(response, "<svg")
+
+    def test_uses_a_generic_icon_for_an_unmatched_category_name(self):
+        Subcategory.objects.create(category=self.category, name="Something Unusual")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, get_category_icon("Something Unusual"))
 
     def test_section_hidden_when_no_subcategories(self):
         response = self.client.get(reverse("pages:home"))
 
         self.assertNotContains(response, "Shop by Category")
+
+    def test_carousel_arrows_hidden_at_five_or_fewer(self):
+        for i in range(5):
+            Subcategory.objects.create(category=self.category, name=f"Sub {i}")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Previous category")
+        self.assertNotContains(response, "Next category")
+
+    def test_carousel_arrows_shown_beyond_five(self):
+        for i in range(6):
+            Subcategory.objects.create(category=self.category, name=f"Sub {i}")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Previous category")
+        self.assertContains(response, "Next category")
 
 
 class HomeShopByPriceTestCase(TestCase):

@@ -11,6 +11,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.templatetags.static import static
 
+from catalog.icons import get_category_icon
 from catalog.models import Product, Review, Subcategory
 from catalog.utils import with_catalog_annotations
 from common.emails import send_templated_email
@@ -63,7 +64,10 @@ def home(request):
         {"section": section, "reviews": _section_reviews(section)}
         for section in HomeTestimonialSection.objects.filter(is_active=True)
     ]
-    shop_by_categories = Subcategory.objects.select_related("category__department")
+    shop_by_categories = [
+        {"subcategory": subcategory, "icon_svg": get_category_icon(subcategory.name)}
+        for subcategory in Subcategory.objects.select_related("category__department")
+    ]
     price_tiers = HomePriceTier.objects.filter(is_active=True)
     return render(
         request,
