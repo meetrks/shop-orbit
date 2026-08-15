@@ -13,15 +13,29 @@ trail is redundant — and ephemeral pre-checkout state (`Cart`,
 `CartItem`, `Wishlist`, `WishlistItem`) nobody needs a change history
 for. `SupplierImageJob` (picweight) is an internal processing record,
 not administrative data staff edit.
-
-Every registration excludes `created_at`/`updated_at` — the log entry's
-own `timestamp` already records *when*, so diffing a field that changes
-on every single save would just add noise to every entry.
 """
 
 from auditlog.registry import auditlog
 
 _TIMESTAMPS = ["created_at", "updated_at"]
+
+
+def _reverse_relation_names(model):
+    """
+    django-auditlog's own field selection (auditlog.diff.get_fields_in_model)
+    only skips many-to-many fields — it does NOT skip reverse relations
+    (the "other model points at this one" side, e.g. Product.reviews,
+    Product.order_items). Diffing those produces garbage on create/delete
+    ("reviews": ["catalog.Review.None", "None"]) since a reverse manager
+    isn't a real field value. `field.concrete` is False for exactly these
+    (and for GenericRelations), so excluding non-concrete fields removes
+    the noise without having to hand-list every reverse accessor per model.
+    """
+    return [f.name for f in model._meta.get_fields() if not getattr(f, "concrete", True)]
+
+
+def _register(model, *, exclude=(), **kwargs):
+    auditlog.register(model, exclude_fields=[*_TIMESTAMPS, *_reverse_relation_names(model), *exclude], **kwargs)
 
 
 def register():
@@ -46,45 +60,50 @@ def register():
     # excluded outright, so a password *change* is still visible as an
     # event without leaking the value. last_login changes on every
     # login, same noise problem as updated_at.
-    auditlog.register(User, exclude_fields=[*_TIMESTAMPS, "last_login"], mask_fields=["password"])
-    auditlog.register(Address, exclude_fields=_TIMESTAMPS)
+    _register(User, exclude=["last_login"], mask_fields=["password"])
+    _register(Address)
 
-    auditlog.register(Department, exclude_fields=_TIMESTAMPS)
-    auditlog.register(Category, exclude_fields=_TIMESTAMPS)
-    auditlog.register(Subcategory, exclude_fields=_TIMESTAMPS)
+    _register(Department)
+    _register(Category)
+    _register(Subcategory)
     # search_vector is a derived field recomputed by catalog.signals on
-    # every save — diffing it is meaningless noise, not an editorial change.
-    auditlog.register(Product, exclude_fields=[*_TIMESTAMPS, "search_vector"])
-    auditlog.register(ProductVariant, exclude_fields=_TIMESTAMPS)
-    auditlog.register(Review, exclude_fields=_TIMESTAMPS)
-    auditlog.register(StockAlert, exclude_fields=_TIMESTAMPS)
+    # every save — diffing it is meaningless noise, not an editorial
+    # change. eav_values is a GenericRelation added dynamically by
+    # catalog.apps.CatalogConfig.ready()'s eav.register(Product) call,
+    # which runs after this one (accounts loads before catalog in
+    # INSTALLED_APPS) — _reverse_relation_names() can't see it yet, so
+    # it's excluded explicitly rather than depending on ready() order.
+    _register(Product, exclude=["search_vector", "eav_values"])
+    _register(ProductVariant)
+    _register(Review)
+    _register(StockAlert)
 
-    auditlog.register(Coupon, exclude_fields=_TIMESTAMPS)
-    auditlog.register(Order, exclude_fields=_TIMESTAMPS)
-    auditlog.register(OrderItem, exclude_fields=_TIMESTAMPS)
+    _register(Coupon)
+    _register(Order)
+    _register(OrderItem)
 
     # raw_response is the full gateway payload (large, low signal) —
     # the normalized fields around it are what's worth diffing.
-    auditlog.register(Payment, exclude_fields=[*_TIMESTAMPS, "raw_response"])
-    auditlog.register(Refund, exclude_fields=[*_TIMESTAMPS, "raw_response"])
+    _register(Payment, exclude=["raw_response"])
+    _register(Refund, exclude=["raw_response"])
 
-    auditlog.register(Invoice, exclude_fields=_TIMESTAMPS)
-    auditlog.register(PackingSlip, exclude_fields=_TIMESTAMPS)
-    auditlog.register(Shipment, exclude_fields=_TIMESTAMPS)
-    auditlog.register(PincodeServiceability, exclude_fields=_TIMESTAMPS)
+    _register(Invoice)
+    _register(PackingSlip)
+    _register(Shipment)
+    _register(PincodeServiceability)
 
-    auditlog.register(Supplier, exclude_fields=_TIMESTAMPS)
-    auditlog.register(PurchaseOrder, exclude_fields=_TIMESTAMPS)
-    auditlog.register(PurchaseOrderLine, exclude_fields=_TIMESTAMPS)
+    _register(Supplier)
+    _register(PurchaseOrder)
+    _register(PurchaseOrderLine)
 
-    auditlog.register(ReturnRequest, exclude_fields=_TIMESTAMPS)
-    auditlog.register(ReturnRequestLine, exclude_fields=_TIMESTAMPS)
-    auditlog.register(ReturnShipment, exclude_fields=_TIMESTAMPS)
+    _register(ReturnRequest)
+    _register(ReturnRequestLine)
+    _register(ReturnShipment)
 
-    auditlog.register(ContactMessage, exclude_fields=_TIMESTAMPS)
-    auditlog.register(HomeBanner, exclude_fields=_TIMESTAMPS)
-    auditlog.register(HomeSection, exclude_fields=_TIMESTAMPS)
-    auditlog.register(HomeSectionProduct, exclude_fields=_TIMESTAMPS)
-    auditlog.register(HomeTestimonialSection, exclude_fields=_TIMESTAMPS)
-    auditlog.register(HomeTestimonialSectionReview, exclude_fields=_TIMESTAMPS)
-    auditlog.register(HomePriceTier, exclude_fields=_TIMESTAMPS)
+    _register(ContactMessage)
+    _register(HomeBanner)
+    _register(HomeSection)
+    _register(HomeSectionProduct)
+    _register(HomeTestimonialSection)
+    _register(HomeTestimonialSectionReview)
+    _register(HomePriceTier)

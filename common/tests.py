@@ -84,3 +84,21 @@ class AuditLogRegistrationTestCase(TestCase):
         cart = Cart.objects.create(user=user)
 
         self.assertFalse(LogEntry.objects.filter(content_type__model="cart", object_pk=str(cart.pk)).exists())
+
+    def test_reverse_relations_are_not_diffed_as_fields(self):
+        # Regression guard: django-auditlog's own field selection only
+        # skips many-to-many fields, not reverse relations — Product has
+        # a dozen of them (reviews, order_items, variants, ...), and
+        # diffing those produced garbage like {"reviews": ["catalog
+        # .Review.None", "None"]} on every create/delete. See
+        # common.audit._reverse_relation_names.
+        product = Product.objects.create(
+            subcategory=self.subcategory, title="Silk Saree", sku="SKU1", price=Decimal("999.00")
+        )
+
+        entry = LogEntry.objects.get(
+            content_type__model="product", object_pk=str(product.pk), action=LogEntry.Action.CREATE
+        )
+        for reverse_field in ["reviews", "variants", "order_items", "cart_items", "eav_values"]:
+            self.assertNotIn(reverse_field, entry.changes)
+        self.assertIn("title", entry.changes)

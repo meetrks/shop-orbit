@@ -773,9 +773,26 @@ class StoreDashboardAuditLogTestCase(TestCase):
         response = self.client.get(reverse("accounts:store_dashboard_audit_log"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Old Title")
-        self.assertContains(response, "New Title")
+        # Just the changed field's name as a pill, not its old/new values
+        # — see templates/accounts/store_dashboard_audit_log.html. Checks
+        # for the pill's exact rendered text (">title</span>") rather than
+        # a bare "title" substring, since the page's own <title> tag would
+        # otherwise make this assertion pass trivially either way.
+        self.assertContains(response, ">title</span>")
+        self.assertNotContains(response, "Old Title")
         self.assertContains(response, "Update")
+
+    def test_changes_are_collapsed_behind_a_details_disclosure(self):
+        # The pill list is inside <details>/<summary> — collapsed by
+        # default (no JS popup needed), with a short "N fields changed"
+        # summary so a long field list doesn't blow out the row.
+        self._make_entry(actor=self.staff, changes={"title": ["Old", "New"], "price": ["1", "2"]})
+        self.client.force_login(self.staff)
+
+        response = self.client.get(reverse("accounts:store_dashboard_audit_log"))
+
+        self.assertContains(response, "<details>")
+        self.assertContains(response, "2 fields changed")
 
     def test_filters_by_user(self):
         entry = self._make_entry(actor=self.staff)

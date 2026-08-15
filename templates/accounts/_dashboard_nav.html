@@ -17,6 +17,10 @@
            class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors {% if active_tab == 'profitability' %}bg-navy-900 text-white{% else %}text-navy-900/70 hover:bg-sky-50{% endif %}">
             Profitability
         </a>
+        <a href="{% url 'accounts:store_dashboard_audit_log' %}"
+           class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors {% if active_tab == 'audit_log' %}bg-navy-900 text-white{% else %}text-navy-900/70 hover:bg-sky-50{% endif %}">
+            Audit Log
+        </a>
     </nav>
     <a href="{% url 'picweight:upload' %}" class="bg-navy-900 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-navy-950 transition-colors">
         Open PicWeight
