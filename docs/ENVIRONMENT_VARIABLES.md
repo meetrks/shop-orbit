@@ -101,6 +101,13 @@ All optional, all covered with inline comments in `.env.example`: `SITE_NAME`,
 `SEO_DEFAULT_KEYWORDS`, `SEO_DEFAULT_OG_IMAGE_PATH`, `SEO_TWITTER_HANDLE`,
 `DJANGO_ADMIN_SITE_HEADER`, `DJANGO_ADMIN_SITE_TITLE`, `WHATSAPP_NUMBER`.
 
+`SITE_VERSION` is separate from the branding vars above — it doesn't
+default to a fixed value in `.env.example`, only in code (see
+`config/settings/base.py`). It's what busts the PWA service worker's
+static-asset cache on deploy (`templates/sw.js`'s `CACHE_NAME`); leave it
+unset unless you want to override the deploy-directory-name default with
+something like a git commit SHA.
+
 ## Deployment scripts (not read by Django itself)
 
 These are read by `scripts/*.sh`, not by any Django settings module:

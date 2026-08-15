@@ -122,6 +122,16 @@ class PwaTestCase(TestCase):
         self.assertEqual(response["Content-Type"], "application/javascript")
         self.assertContains(response, "self.addEventListener")
 
+    @override_settings(SITE_VERSION="20260815143022")
+    def test_service_worker_cache_name_reflects_site_version(self):
+        # Regression guard: the cache name must change with SITE_VERSION,
+        # or a deploy can never bust returning visitors' stale static-asset
+        # cache (see templates/sw.js's activate handler, which only clears
+        # caches whose name doesn't match the current CACHE_NAME).
+        response = self.client.get("/sw.js")
+
+        self.assertContains(response, 'const CACHE_NAME = "avr-static-20260815143022";')
+
     def test_base_template_links_manifest_and_registers_service_worker(self):
         response = self.client.get(reverse("pages:home"))
 

@@ -177,6 +177,21 @@ SITE_TAGLINE = env("SITE_TAGLINE", default="Quality products, thoughtfully curat
 SITE_DOMAIN = env("SITE_DOMAIN", default="shoporbit.example")
 SITE_SCHEME = env("SITE_SCHEME", default="https")
 
+# A value that changes on every deploy, used to bust the PWA service
+# worker's static-asset cache (see templates/sw.js's CACHE_NAME) so
+# returning visitors get fresh CSS/JS after a release instead of being
+# stuck on a stale cached copy indefinitely — that cache is otherwise
+# keyed by a hardcoded name and never expires on its own. scripts/deploy.sh
+# clones each release into its own releases/<timestamp> directory and
+# symlinks current/ to it; BASE_DIR above resolves through that symlink
+# to the real timestamped directory, so its name is already a unique,
+# monotonically increasing per-deploy identifier with no extra plumbing
+# needed. In local dev this is just the repo directory name — stable
+# across runs, which is fine since local dev isn't the case this exists
+# to fix. SITE_VERSION itself is still overridable via env for anyone
+# who'd rather wire in a git commit SHA or CI build number instead.
+SITE_VERSION = env("SITE_VERSION", default=BASE_DIR.name)
+
 # Relative to STATIC_URL, e.g. "img/logo.png". Leave blank to fall back to a
 # generated initials badge derived from SITE_NAME.
 SITE_LOGO_PATH = env("SITE_LOGO_PATH", default="")

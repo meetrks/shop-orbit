@@ -6,7 +6,11 @@
 // /payments/, /accounts/, /store-dashboard/, are always fetched fresh.
 // Caching a product page would risk serving stale prices/stock; caching
 // checkout/cart would risk stale CSRF tokens or stock reservations.
-const CACHE_NAME = "avr-static-v1";
+// Suffixed with the current deploy's SITE_VERSION (see
+// pages.views.service_worker / config/settings/base.py) so this name
+// changes on every release, which is what actually busts the cache below
+// — activate() deletes any cache whose name doesn't match the current one.
+const CACHE_NAME = "avr-static-{{ site_version }}";
 const STATIC_ASSET_PATTERN = /^\/static\//;
 
 self.addEventListener("install", () => {

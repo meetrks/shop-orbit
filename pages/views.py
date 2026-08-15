@@ -260,4 +260,9 @@ def service_worker(request):
     URL's directory, and this one needs to control the whole site to be
     installable.
     """
-    return render(request, "sw.js", content_type="application/javascript")
+    return render(
+        request,
+        "sw.js",
+        {"site_version": settings.SITE_VERSION},
+        content_type="application/javascript",
+    )
