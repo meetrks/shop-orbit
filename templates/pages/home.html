@@ -70,45 +70,6 @@
     </section>
 {% endfor %}
 
-{% if shop_by_categories %}
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <h2 class="font-serif text-2xl text-navy-900 mb-6">Shop by Category</h2>
-        <div class="relative" x-data="{
-            scrollByCard(direction) {
-                const card = this.$refs.track.querySelector('[data-category-card]');
-                const amount = card ? card.offsetWidth + 20 : 200;
-                this.$refs.track.scrollBy({ left: direction * amount, behavior: 'smooth' });
-            }
-        }">
-            <div x-ref="track" class="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2">
-                {% for entry in shop_by_categories %}
-                    <a data-category-card href="{{ entry.subcategory.get_absolute_url }}"
-                       class="snap-start shrink-0 w-[30%] sm:w-1/4 lg:w-1/5 group flex flex-col items-center text-center">
-                        <div class="h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden border border-sky-100 bg-sky-50 flex items-center justify-center mb-2 group-hover:border-sky-300 transition-colors">
-                            {% if entry.subcategory.icon %}
-                                <img src="{{ entry.subcategory.icon.url }}" alt="{{ entry.subcategory.name }}" class="w-full h-full object-cover">
-                            {% else %}
-                                {{ entry.icon_svg }}
-                            {% endif %}
-                        </div>
-                        <span class="text-xs font-medium text-navy-900 group-hover:text-sky-700 line-clamp-2">{{ entry.subcategory.name }}</span>
-                    </a>
-                {% endfor %}
-            </div>
-            {% if shop_by_categories|length > 5 %}
-                <button type="button" @click="scrollByCard(-1)" aria-label="Previous category"
-                        class="hidden sm:flex absolute -left-4 top-10 sm:top-12 h-10 w-10 items-center justify-center rounded-full bg-white border border-sky-200 shadow hover:bg-sky-50">
-                    <svg class="w-5 h-5 text-navy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                </button>
-                <button type="button" @click="scrollByCard(1)" aria-label="Next category"
-                        class="hidden sm:flex absolute -right-4 top-10 sm:top-12 h-10 w-10 items-center justify-center rounded-full bg-white border border-sky-200 shadow hover:bg-sky-50">
-                    <svg class="w-5 h-5 text-navy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                </button>
-            {% endif %}
-        </div>
-    </section>
-{% endif %}
-
 {% if price_tiers %}
     <section class="bg-sky-50 border-y border-sky-100 py-14">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -154,6 +115,45 @@
         </div>
     </section>
 {% endfor %}
+
+{% if shop_by_categories %}
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <h2 class="font-serif text-2xl text-navy-900 mb-6">Shop by Category</h2>
+        <div class="relative" x-data="{
+            scrollByCard(direction) {
+                const card = this.$refs.track.querySelector('[data-category-card]');
+                const amount = card ? card.offsetWidth + 20 : 200;
+                this.$refs.track.scrollBy({ left: direction * amount, behavior: 'smooth' });
+            }
+        }">
+            <div x-ref="track" class="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2">
+                {% for entry in shop_by_categories %}
+                    <a data-category-card href="{{ entry.subcategory.get_absolute_url }}"
+                       class="snap-start shrink-0 w-[30%] sm:w-1/4 lg:w-1/5 group flex flex-col items-center text-center">
+                        <div class="h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden border border-sky-100 bg-sky-50 flex items-center justify-center mb-2 group-hover:border-sky-300 transition-colors">
+                            {% if entry.subcategory.icon %}
+                                <img src="{{ entry.subcategory.icon.url }}" alt="{{ entry.subcategory.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                {{ entry.icon_svg }}
+                            {% endif %}
+                        </div>
+                        <span class="text-xs font-medium text-navy-900 group-hover:text-sky-700 line-clamp-2">{{ entry.subcategory.name }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+            {% if shop_by_categories|length > 5 %}
+                <button type="button" @click="scrollByCard(-1)" aria-label="Previous category"
+                        class="hidden sm:flex absolute -left-4 top-10 sm:top-12 h-10 w-10 items-center justify-center rounded-full bg-white border border-sky-200 shadow hover:bg-sky-50">
+                    <svg class="w-5 h-5 text-navy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button type="button" @click="scrollByCard(1)" aria-label="Next category"
+                        class="hidden sm:flex absolute -right-4 top-10 sm:top-12 h-10 w-10 items-center justify-center rounded-full bg-white border border-sky-200 shadow hover:bg-sky-50">
+                    <svg class="w-5 h-5 text-navy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            {% endif %}
+        </div>
+    </section>
+{% endif %}
 
 {% for entry in testimonial_sections %}
     {% if entry.reviews %}
