@@ -8,7 +8,26 @@ from django.urls import reverse
 from accounts.models import User
 from catalog.icons import get_category_icon
 from catalog.models import Category, Department, Product, Review, Subcategory
-from pages.models import HomeBanner, HomePriceTier, HomeTestimonialSection, HomeTestimonialSectionReview
+from pages.icons import get_named_icon
+from pages.models import (
+    HomeBanner,
+    HomeCategorySpotlightSection,
+    HomeCategorySpotlightTile,
+    HomeGalleryItem,
+    HomeGallerySection,
+    HomeLifestyleSection,
+    HomeLifestyleTile,
+    HomeLovedByQuote,
+    HomeLovedBySection,
+    HomePriceTier,
+    HomePromoBanner,
+    HomeTestimonialSection,
+    HomeTestimonialSectionReview,
+    HomeTrustStripItem,
+    HomeTrustStripSection,
+    HomeValuePropItem,
+    HomeValuePropSection,
+)
 
 
 class PolicyPagesTestCase(TestCase):
@@ -133,6 +152,39 @@ class HomeHeroBannerTestCase(TestCase):
         response = self.client.get(reverse("pages:home"))
 
         self.assertNotContains(response, "Create an Account")
+
+
+class HomeBannerPlacementTestCase(TestCase):
+    def test_hero_banner_shown_at_top_not_in_closing_slot(self):
+        HomeBanner.objects.create(heading="Top of the page", placement=HomeBanner.Placement.HERO, is_active=True)
+
+        response = self.client.get(reverse("pages:home"))
+        content = response.content.decode()
+
+        self.assertIn("Top of the page", content)
+        # The hero heading renders as an <h1>; a closing-slot banner would
+        # render as an <h2> in the dark bg-navy-900 section instead.
+        self.assertIn(
+            '<h1 class="font-serif text-4xl sm:text-5xl text-navy-900 leading-tight mb-4">Top of the page</h1>',
+            content,
+        )
+
+    def test_closing_banner_shown_above_footer_not_in_hero_slot(self):
+        HomeBanner.objects.create(heading="One last look", placement=HomeBanner.Placement.CLOSING, is_active=True)
+
+        response = self.client.get(reverse("pages:home"))
+        content = response.content.decode()
+
+        self.assertIn("One last look", content)
+        self.assertNotIn(
+            '<h1 class="font-serif text-4xl sm:text-5xl text-navy-900 leading-tight mb-4">One last look</h1>',
+            content,
+        )
+
+    def test_default_placement_is_hero(self):
+        banner = HomeBanner.objects.create(heading="Untouched")
+
+        self.assertEqual(banner.placement, HomeBanner.Placement.HERO)
 
 
 class SitemapTestCase(TestCase):
@@ -372,3 +424,285 @@ class HomeShopByPriceTestCase(TestCase):
         content = response.content.decode()
 
         self.assertLess(content.index("Under Rs 99"), content.index("Under Rs 199"))
+
+
+class HomeLifestyleSectionTestCase(TestCase):
+    def test_renders_when_active_with_a_tile(self):
+        section = HomeLifestyleSection.objects.create(title="Shop Your Look", is_active=True)
+        HomeLifestyleTile.objects.create(section=section, label="For Everyday")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Shop Your Look")
+        self.assertContains(response, "For Everyday")
+
+    def test_hidden_when_inactive(self):
+        section = HomeLifestyleSection.objects.create(title="Shop Your Look", is_active=False)
+        HomeLifestyleTile.objects.create(section=section, label="For Everyday")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Shop Your Look")
+
+    def test_hidden_when_active_with_no_tiles(self):
+        HomeLifestyleSection.objects.create(title="Shop Your Look", is_active=True)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Shop Your Look")
+
+    def test_tiles_render_in_display_order(self):
+        section = HomeLifestyleSection.objects.create(title="Shop Your Look", is_active=True)
+        HomeLifestyleTile.objects.create(section=section, label="For Weddings", display_order=2)
+        HomeLifestyleTile.objects.create(section=section, label="For Everyday", display_order=1)
+
+        response = self.client.get(reverse("pages:home"))
+        content = response.content.decode()
+
+        self.assertLess(content.index("For Everyday"), content.index("For Weddings"))
+
+    def test_only_the_first_active_section_is_shown(self):
+        older = HomeLifestyleSection.objects.create(title="Older Look", is_active=True, display_order=1)
+        HomeLifestyleTile.objects.create(section=older, label="Older Tile")
+        newer = HomeLifestyleSection.objects.create(title="Newer Look", is_active=True, display_order=2)
+        HomeLifestyleTile.objects.create(section=newer, label="Newer Tile")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Older Look")
+        self.assertNotContains(response, "Newer Look")
+
+    def test_carousel_arrows_hidden_at_four_or_fewer(self):
+        section = HomeLifestyleSection.objects.create(title="Shop Your Look", is_active=True)
+        for i in range(4):
+            HomeLifestyleTile.objects.create(section=section, label=f"Tile {i}")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Previous look")
+        self.assertNotContains(response, "Next look")
+
+    def test_carousel_arrows_shown_beyond_four(self):
+        section = HomeLifestyleSection.objects.create(title="Shop Your Look", is_active=True)
+        for i in range(5):
+            HomeLifestyleTile.objects.create(section=section, label=f"Tile {i}")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Previous look")
+        self.assertContains(response, "Next look")
+
+
+class HomePromoBannerTestCase(TestCase):
+    def test_renders_when_active(self):
+        HomePromoBanner.objects.create(heading="The Gold Look. Without The Gold Price.", is_active=True)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "The Gold Look. Without The Gold Price.")
+
+    def test_hidden_when_inactive(self):
+        HomePromoBanner.objects.create(heading="The Gold Look.", is_active=False)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "The Gold Look.")
+
+    def test_only_non_blank_bullets_render(self):
+        HomePromoBanner.objects.create(
+            heading="The Gold Look.",
+            bullet_1="Gold-inspired designs",
+            bullet_2="",
+            bullet_3="",
+            is_active=True,
+        )
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Gold-inspired designs")
+
+    def test_only_the_first_active_banner_is_shown(self):
+        HomePromoBanner.objects.create(heading="Older Promo", is_active=True, display_order=1)
+        HomePromoBanner.objects.create(heading="Newer Promo", is_active=True, display_order=2)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Older Promo")
+        self.assertNotContains(response, "Newer Promo")
+
+
+class HomeCategorySpotlightSectionTestCase(TestCase):
+    def test_renders_when_active_with_a_tile(self):
+        section = HomeCategorySpotlightSection.objects.create(title="Shop Categories", is_active=True)
+        HomeCategorySpotlightTile.objects.create(section=section, label="Earrings", tagline="Discover your next pair")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Shop Categories")
+        self.assertContains(response, "Earrings")
+        self.assertContains(response, "Discover your next pair")
+
+    def test_hidden_when_inactive(self):
+        section = HomeCategorySpotlightSection.objects.create(title="Shop Categories", is_active=False)
+        HomeCategorySpotlightTile.objects.create(section=section, label="Earrings")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Shop Categories")
+
+    def test_hidden_when_active_with_no_tiles(self):
+        HomeCategorySpotlightSection.objects.create(title="Shop Categories", is_active=True)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Shop Categories")
+
+
+class HomeLovedBySectionTestCase(TestCase):
+    def test_renders_when_active_with_a_quote(self):
+        section = HomeLovedBySection.objects.create(
+            title="Loved by Our Customers",
+            rating_value=Decimal("4.8"),
+            rating_count_label="500+ Happy Customers",
+            is_active=True,
+        )
+        HomeLovedByQuote.objects.create(section=section, quote_text="Beautiful jewellery!", customer_name="Priya S.")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Loved by Our Customers")
+        self.assertContains(response, "4.8/5")
+        self.assertContains(response, "500+ Happy Customers")
+        self.assertContains(response, "Beautiful jewellery!")
+        self.assertContains(response, "Priya S.")
+
+    def test_hidden_when_inactive(self):
+        section = HomeLovedBySection.objects.create(title="Loved by Our Customers", is_active=False)
+        HomeLovedByQuote.objects.create(section=section, quote_text="Great!", customer_name="Neha M.")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Loved by Our Customers")
+
+    def test_hidden_when_active_with_no_quotes(self):
+        HomeLovedBySection.objects.create(title="Loved by Our Customers", is_active=True)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Loved by Our Customers")
+
+
+class HomeTrustStripSectionTestCase(TestCase):
+    def test_renders_when_active_with_an_item(self):
+        section = HomeTrustStripSection.objects.create(is_active=True)
+        HomeTrustStripItem.objects.create(section=section, icon="truck", label="Fast Shipping")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Fast Shipping")
+        self.assertContains(response, get_named_icon("truck"))
+
+    def test_hidden_when_inactive(self):
+        section = HomeTrustStripSection.objects.create(is_active=False)
+        HomeTrustStripItem.objects.create(section=section, icon="truck", label="Fast Shipping")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Fast Shipping")
+
+    def test_hidden_when_active_with_no_items(self):
+        HomeTrustStripSection.objects.create(title="Trust", is_active=True)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Trust")
+
+    def test_unrecognized_icon_falls_back_to_the_generic_icon(self):
+        section = HomeTrustStripSection.objects.create(is_active=True)
+        item = HomeTrustStripItem.objects.create(section=section, label="Mystery Badge")
+        item.icon = "not-a-real-icon"
+        item.save()
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, get_named_icon("not-a-real-icon"))
+        self.assertContains(response, get_named_icon("sparkle"))
+
+
+class HomeValuePropSectionTestCase(TestCase):
+    def test_renders_when_active_with_an_item(self):
+        section = HomeValuePropSection.objects.create(title="Why AVR Collections", is_active=True)
+        HomeValuePropItem.objects.create(
+            section=section, icon="gem", title="Designed to Impress", description="Contemporary styles."
+        )
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Why AVR Collections")
+        self.assertContains(response, "Designed to Impress")
+        self.assertContains(response, "Contemporary styles.")
+        self.assertContains(response, get_named_icon("gem"))
+
+    def test_hidden_when_inactive(self):
+        section = HomeValuePropSection.objects.create(title="Why AVR Collections", is_active=False)
+        HomeValuePropItem.objects.create(section=section, title="Designed to Impress", description="Styles.")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Why AVR Collections")
+
+    def test_hidden_when_active_with_no_items(self):
+        HomeValuePropSection.objects.create(title="Why AVR Collections", is_active=True)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Why AVR Collections")
+
+
+class HomeGallerySectionTestCase(TestCase):
+    def test_renders_when_active_with_an_item(self):
+        section = HomeGallerySection.objects.create(
+            title="Behind the AVR", instagram_url="https://instagram.com/avrcollections", is_active=True
+        )
+        HomeGalleryItem.objects.create(section=section, caption="Packing an order")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Behind the AVR")
+        self.assertContains(response, "Packing an order")
+        self.assertContains(response, "https://instagram.com/avrcollections")
+
+    def test_hidden_when_inactive(self):
+        section = HomeGallerySection.objects.create(title="Behind the AVR", is_active=False)
+        HomeGalleryItem.objects.create(section=section, caption="Packing an order")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Behind the AVR")
+
+    def test_hidden_when_active_with_no_items(self):
+        HomeGallerySection.objects.create(title="Behind the AVR", is_active=True)
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Behind the AVR")
+
+    def test_carousel_arrows_hidden_at_five_or_fewer(self):
+        section = HomeGallerySection.objects.create(title="Behind the AVR", is_active=True)
+        for i in range(5):
+            HomeGalleryItem.objects.create(section=section, caption=f"Photo {i}")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertNotContains(response, "Previous photo")
+        self.assertNotContains(response, "Next photo")
+
+    def test_carousel_arrows_shown_beyond_five(self):
+        section = HomeGallerySection.objects.create(title="Behind the AVR", is_active=True)
+        for i in range(6):
+            HomeGalleryItem.objects.create(section=section, caption=f"Photo {i}")
+
+        response = self.client.get(reverse("pages:home"))
+
+        self.assertContains(response, "Previous photo")
+        self.assertContains(response, "Next photo")

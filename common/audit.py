@@ -47,11 +47,24 @@ def register():
     from pages.models import (
         ContactMessage,
         HomeBanner,
+        HomeCategorySpotlightSection,
+        HomeCategorySpotlightTile,
+        HomeGalleryItem,
+        HomeGallerySection,
+        HomeLifestyleSection,
+        HomeLifestyleTile,
+        HomeLovedByQuote,
+        HomeLovedBySection,
         HomePriceTier,
+        HomePromoBanner,
         HomeSection,
         HomeSectionProduct,
         HomeTestimonialSection,
         HomeTestimonialSectionReview,
+        HomeTrustStripItem,
+        HomeTrustStripSection,
+        HomeValuePropItem,
+        HomeValuePropSection,
     )
     from payments.models import Payment, Refund
     from returns.models import ReturnRequest, ReturnRequestLine, ReturnShipment
@@ -107,3 +120,16 @@ def register():
     _register(HomeTestimonialSection)
     _register(HomeTestimonialSectionReview)
     _register(HomePriceTier)
+    _register(HomeLifestyleSection)
+    _register(HomeLifestyleTile)
+    _register(HomePromoBanner)
+    _register(HomeCategorySpotlightSection)
+    _register(HomeCategorySpotlightTile)
+    _register(HomeLovedBySection)
+    _register(HomeLovedByQuote)
+    _register(HomeTrustStripSection)
+    _register(HomeTrustStripItem)
+    _register(HomeValuePropSection)
+    _register(HomeValuePropItem)
+    _register(HomeGallerySection)
+    _register(HomeGalleryItem)

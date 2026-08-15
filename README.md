@@ -23,8 +23,11 @@ scripts for a plain VPS (no Docker/Kubernetes required).
 - Cart, wishlist, coupons, an automatic "buy more, save more" quantity
   discount
 - Customer reviews with verified-purchase badges
-- Admin-configurable homepage sections — product shelves, a testimonials
-  carousel, "Shop by Category," "Shop by Price" — no template edits needed
+- Admin-configurable homepage sections — hero and closing banners, product
+  shelves, a testimonials carousel, "Shop by Category," "Shop by Price,"
+  "Shop Your Look," a promo banner, curated category spotlights, a
+  customer-love rating badge with quotes, a trust-badge strip, value-prop
+  cards, and a photo gallery — no template edits needed
 - PWA support (installable, offline-safe service worker)
 
 **Checkout & payments**

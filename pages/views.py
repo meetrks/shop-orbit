@@ -17,7 +17,20 @@ from catalog.utils import with_catalog_annotations
 from common.emails import send_templated_email
 
 from .forms import ContactForm
-from .models import HomeBanner, HomePriceTier, HomeSection, HomeTestimonialSection
+from .icons import get_named_icon
+from .models import (
+    HomeBanner,
+    HomeCategorySpotlightSection,
+    HomeGallerySection,
+    HomeLifestyleSection,
+    HomeLovedBySection,
+    HomePriceTier,
+    HomePromoBanner,
+    HomeSection,
+    HomeTestimonialSection,
+    HomeTrustStripSection,
+    HomeValuePropSection,
+)
 
 
 def _section_products(section):
@@ -58,8 +71,28 @@ def _section_reviews(section):
     return sorted(reviews, key=lambda review: review.rating, reverse=True)
 
 
+def _singleton_section(model, children_field):
+    """
+    Return {"section": ..., children_field: [...]} for the first active
+    row of a "singleton" homepage section model (one of the Home*Section
+    models below that only ever shows one instance at a time — see
+    pages.models._SINGLETON_ACTIVE_HELP) that also has at least one child
+    card, or None if there's no active row or its card list is empty.
+    These are pure marketing widgets with no meaningful partial state, so
+    an active-but-empty section stays hidden rather than rendering blank.
+    """
+    section = model.objects.filter(is_active=True).prefetch_related(children_field).first()
+    if section is None:
+        return None
+    children = list(getattr(section, children_field).all())
+    if not children:
+        return None
+    return {"section": section, children_field: children}
+
+
 def home(request):
-    banners = HomeBanner.objects.filter(is_active=True)
+    hero_banners = HomeBanner.objects.filter(is_active=True, placement=HomeBanner.Placement.HERO)
+    closing_banners = HomeBanner.objects.filter(is_active=True, placement=HomeBanner.Placement.CLOSING)
     sections = [
         {"section": section, "products": _section_products(section)}
         for section in HomeSection.objects.filter(is_active=True).select_related("department")
@@ -73,15 +106,43 @@ def home(request):
         for subcategory in Subcategory.objects.select_related("category__department")
     ]
     price_tiers = HomePriceTier.objects.filter(is_active=True)
+
+    lifestyle_section = _singleton_section(HomeLifestyleSection, "tiles")
+    promo_banner = HomePromoBanner.objects.filter(is_active=True).first()
+    category_spotlight_section = _singleton_section(HomeCategorySpotlightSection, "tiles")
+    loved_by_section = _singleton_section(HomeLovedBySection, "quotes")
+
+    trust_strip_section = _singleton_section(HomeTrustStripSection, "items")
+    if trust_strip_section:
+        trust_strip_section["items"] = [
+            {"item": item, "icon_svg": get_named_icon(item.icon)} for item in trust_strip_section["items"]
+        ]
+
+    value_prop_section = _singleton_section(HomeValuePropSection, "items")
+    if value_prop_section:
+        value_prop_section["items"] = [
+            {"item": item, "icon_svg": get_named_icon(item.icon)} for item in value_prop_section["items"]
+        ]
+
+    gallery_section = _singleton_section(HomeGallerySection, "items")
+
     return render(
         request,
         "pages/home.html",
         {
-            "banners": banners,
+            "hero_banners": hero_banners,
+            "closing_banners": closing_banners,
             "sections": sections,
             "testimonial_sections": testimonial_sections,
             "shop_by_categories": shop_by_categories,
             "price_tiers": price_tiers,
+            "lifestyle_section": lifestyle_section,
+            "promo_banner": promo_banner,
+            "category_spotlight_section": category_spotlight_section,
+            "loved_by_section": loved_by_section,
+            "trust_strip_section": trust_strip_section,
+            "value_prop_section": value_prop_section,
+            "gallery_section": gallery_section,
         },
     )
 
