@@ -173,7 +173,7 @@
                 }">
                     <div x-ref="track" class="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 {% if not entry.section.subtitle %}mt-6{% endif %}">
                         {% for review in entry.reviews %}
-                            <div data-testimonial-card class="snap-start shrink-0 w-[30%] sm:w-1/4 lg:w-1/5 bg-white border border-sky-100 rounded-xl p-6 flex flex-col">
+                            <div data-testimonial-card class="snap-start shrink-0 w-[85%] sm:w-1/4 lg:w-1/5 bg-white border border-sky-100 rounded-xl p-6 flex flex-col">
                                 <div class="flex items-center gap-0.5 mb-3">
                                     {% for i in "12345" %}
                                         <svg viewBox="0 0 20 20" class="w-4 h-4 {% if forloop.counter <= review.rating %}fill-sky-500{% else %}fill-slate-200{% endif %}">
