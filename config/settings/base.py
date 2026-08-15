@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "crispy_tailwind",
     "rest_framework",
     "eav",
+    "auditlog",
     "accounts",
     "catalog",
     "cart",
@@ -80,6 +81,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Must come after AuthenticationMiddleware — it reads request.user to
+    # record who made each change (see common/audit.py for what's tracked).
+    "auditlog.middleware.AuditlogMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

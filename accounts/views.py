@@ -3,6 +3,7 @@
 import datetime
 from decimal import Decimal
 
+from auditlog.models import LogEntry
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -10,6 +11,7 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
+from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
 from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncDate
@@ -32,13 +34,14 @@ from payments.services import PaymentService
 from picweight.models import SupplierImageJob
 
 from .forms import AddressForm, EmailLoginForm, ProfileForm, RegistrationForm
-from .models import Address
+from .models import Address, User
 from .services import create_address, delete_address, set_default_address, update_address
 
 REVENUE_TREND_DAYS = 30
 ORDERS_PER_PAGE = 25
 DASHBOARD_PRODUCTS_PER_PAGE = 25
 MY_ORDERS_PER_PAGE = 10
+AUDIT_LOG_PER_PAGE = 50
 
 
 class EmailLoginView(LoginView):
@@ -261,6 +264,60 @@ def store_dashboard_orders(request):
         "preserved_querystring": f"status={status_filter}" if status_filter else "",
     }
     return render(request, "accounts/store_dashboard_orders.html", context)
+
+
+@staff_member_required(login_url="accounts:login")
+def store_dashboard_audit_log(request):
+    """
+    The global audit log: every tracked model's create/update/delete
+    history (see common/audit.py for what's tracked and why), filterable
+    by who made the change, which kind of record, and when.
+    """
+    entries = LogEntry.objects.select_related("actor", "content_type").order_by("-timestamp")
+
+    user_filter = request.GET.get("user", "")
+    if user_filter:
+        entries = entries.filter(actor_id=user_filter)
+
+    model_filter = request.GET.get("model", "")
+    if model_filter:
+        entries = entries.filter(content_type_id=model_filter)
+
+    date_from = request.GET.get("date_from", "")
+    if date_from:
+        entries = entries.filter(timestamp__date__gte=date_from)
+
+    date_to = request.GET.get("date_to", "")
+    if date_to:
+        entries = entries.filter(timestamp__date__lte=date_to)
+
+    paginator = Paginator(entries, AUDIT_LOG_PER_PAGE)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    user_choices = User.objects.filter(pk__in=LogEntry.objects.values_list("actor_id", flat=True).distinct()).order_by(
+        "email"
+    )
+    model_choices = ContentType.objects.filter(
+        pk__in=LogEntry.objects.values_list("content_type_id", flat=True).distinct()
+    ).order_by("model")
+
+    preserved_params = []
+    for key in ("user", "model", "date_from", "date_to"):
+        value = request.GET.get(key, "")
+        if value:
+            preserved_params.append(f"{key}={value}")
+
+    context = {
+        "page_obj": page_obj,
+        "user_filter": user_filter,
+        "model_filter": model_filter,
+        "date_from": date_from,
+        "date_to": date_to,
+        "user_choices": user_choices,
+        "model_choices": model_choices,
+        "preserved_querystring": "&".join(preserved_params),
+    }
+    return render(request, "accounts/store_dashboard_audit_log.html", context)
 
 
 @staff_member_required(login_url="accounts:login")

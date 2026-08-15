@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Log — Store Dashboard — {{ site.name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    {% include "accounts/_dashboard_nav.html" with active_tab="audit_log" %}
+
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-navy-900">Audit Log</h1>
+        <p class="text-sm text-navy-900/50">{{ page_obj.paginator.count }} entr{{ page_obj.paginator.count|pluralize:"y,ies" }}</p>
+    </div>
+
+    <form method="get" class="bg-white border border-sky-100 rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap items-end gap-3">
+        <div>
+            <label class="block text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">User</label>
+            <select name="user" class="rounded-md border border-sky-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400">
+                <option value="">All users</option>
+                {% for user in user_choices %}
+                    <option value="{{ user.pk }}" {% if user_filter == user.pk|stringformat:"s" %}selected{% endif %}>{{ user.email }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">Model</label>
+            <select name="model" class="rounded-md border border-sky-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400">
+                <option value="">All models</option>
+                {% for content_type in model_choices %}
+                    <option value="{{ content_type.pk }}" {% if model_filter == content_type.pk|stringformat:"s" %}selected{% endif %}>{{ content_type.name|capfirst }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">From</label>
+            <input type="date" name="date_from" value="{{ date_from }}"
+                   class="rounded-md border border-sky-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-navy-900/50 uppercase tracking-wide mb-1">To</label>
+            <input type="date" name="date_to" value="{{ date_to }}"
+                   class="rounded-md border border-sky-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400">
+        </div>
+        <button type="submit" class="bg-navy-900 text-white text-sm font-semibold px-4 py-2 rounded-md hover:bg-navy-950">
+            Filter
+        </button>
+        {% if user_filter or model_filter or date_from or date_to %}
+            <a href="{% url 'accounts:store_dashboard_audit_log' %}" class="text-sm font-semibold text-navy-900/60 hover:underline px-1 py-2">
+                Clear
+            </a>
+        {% endif %}
+    </form>
+
+    <div class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6">
+        {% if page_obj.object_list %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-xs font-semibold text-navy-900/50 uppercase tracking-wide border-b border-sky-100">
+                            <th class="py-2 pr-3">When</th>
+                            <th class="py-2 pr-3">Who</th>
+                            <th class="py-2 pr-3">Action</th>
+                            <th class="py-2 pr-3">Model</th>
+                            <th class="py-2 pr-3">Object</th>
+                            <th class="py-2">Changes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-sky-50">
+                        {% for entry in page_obj %}
+                            <tr>
+                                <td class="py-3 pr-3 text-navy-900/60 whitespace-nowrap">{{ entry.timestamp|date:"d M Y, H:i" }}</td>
+                                <td class="py-3 pr-3 text-navy-900/70">{{ entry.actor.email|default:"System" }}</td>
+                                <td class="py-3 pr-3">
+                                    <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full
+                                        {% if entry.action == 0 %} bg-emerald-100 text-emerald-700
+                                        {% elif entry.action == 1 %} bg-sky-100 text-sky-700
+                                        {% elif entry.action == 2 %} bg-red-100 text-red-700
+                                        {% else %} bg-slate-100 text-slate-700 {% endif %}">
+                                        {{ entry.get_action_display|capfirst }}
+                                    </span>
+                                </td>
+                                <td class="py-3 pr-3 text-navy-900/70">{{ entry.content_type.name|capfirst }}</td>
+                                <td class="py-3 pr-3 text-navy-900/70 max-w-xs truncate" title="{{ entry.object_repr }}">{{ entry.object_repr }}</td>
+                                <td class="py-3 text-xs text-navy-900/60">
+                                    {% if entry.changes %}
+                                        <ul class="space-y-0.5">
+                                            {% for field, values in entry.changes.items %}
+                                                <li><span class="font-semibold text-navy-900/80">{{ field }}</span>: {{ values.0|default:"—"|truncatechars:30 }} &rarr; {{ values.1|default:"—"|truncatechars:30 }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        &mdash;
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "partials/pagination.html" %}
+        {% else %}
+            <p class="text-sm text-navy-900/60">No audit log entries match this filter.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

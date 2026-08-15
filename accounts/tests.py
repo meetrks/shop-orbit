@@ -4,10 +4,13 @@ import json
 from decimal import Decimal
 from unittest import mock
 
+from auditlog.models import LogEntry
 from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import Address, User
 from cart.models import Order, OrderItem
@@ -721,3 +724,103 @@ class AddressBookTestCase(TestCase):
         response = self.client.get(reverse("accounts:address_add"))
 
         self.assertEqual(response.status_code, 302)
+
+
+class StoreDashboardAuditLogTestCase(TestCase):
+    def setUp(self):
+        self.staff = User.objects.create_user(
+            email="staff@example.com", password="pw", full_name="Staff One", is_staff=True
+        )
+        self.other_staff = User.objects.create_user(
+            email="other-staff@example.com", password="pw", full_name="Other Staff", is_staff=True
+        )
+        self.buyer = User.objects.create_user(email="buyer@example.com", password="pw", full_name="Buyer One")
+        subcategory = _make_taxonomy()
+        self.product = Product.objects.create(
+            subcategory=subcategory,
+            title="Silk Saree",
+            sku="SKU1",
+            price=Decimal("999.00"),
+        )
+        self.product_content_type = ContentType.objects.get_for_model(Product)
+        self.user_content_type = ContentType.objects.get_for_model(User)
+
+    def _make_entry(
+        self, *, actor=None, content_type=None, obj=None, action=LogEntry.Action.UPDATE, timestamp=None, changes=None
+    ):
+        return LogEntry.objects.create(
+            actor=actor,
+            content_type=content_type or self.product_content_type,
+            object_pk=str(obj.pk if obj else self.product.pk),
+            object_id=obj.pk if obj else self.product.pk,
+            object_repr=str(obj or self.product),
+            action=action,
+            changes=changes or {"title": ["Old Title", "New Title"]},
+            timestamp=timestamp or timezone.now(),
+        )
+
+    def test_non_staff_is_redirected_away(self):
+        self.client.force_login(self.buyer)
+
+        response = self.client.get(reverse("accounts:store_dashboard_audit_log"))
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_staff_sees_logged_entries(self):
+        self._make_entry(actor=self.staff)
+        self.client.force_login(self.staff)
+
+        response = self.client.get(reverse("accounts:store_dashboard_audit_log"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Old Title")
+        self.assertContains(response, "New Title")
+        self.assertContains(response, "Update")
+
+    def test_filters_by_user(self):
+        entry = self._make_entry(actor=self.staff)
+        self._make_entry(actor=self.other_staff)
+        self.client.force_login(self.staff)
+
+        response = self.client.get(reverse("accounts:store_dashboard_audit_log"), {"user": self.staff.pk})
+
+        self.assertEqual(list(response.context["page_obj"].object_list), [entry])
+
+    def test_filters_by_model(self):
+        # setUp already created self.product, which itself logged a
+        # "create" entry — the model filter should keep that one too,
+        # it's a genuine Product-model entry, just not the only one.
+        product_entry = self._make_entry(actor=self.staff, content_type=self.product_content_type)
+        user_entry = self._make_entry(actor=self.staff, content_type=self.user_content_type, obj=self.buyer)
+        self.client.force_login(self.staff)
+
+        response = self.client.get(
+            reverse("accounts:store_dashboard_audit_log"), {"model": self.product_content_type.pk}
+        )
+
+        results = list(response.context["page_obj"].object_list)
+        self.assertIn(product_entry, results)
+        self.assertNotIn(user_entry, results)
+
+    def test_filters_by_date_range(self):
+        in_range = self._make_entry(
+            actor=self.staff, timestamp=timezone.datetime(2026, 6, 15, tzinfo=timezone.get_current_timezone())
+        )
+        self._make_entry(
+            actor=self.staff, timestamp=timezone.datetime(2026, 1, 1, tzinfo=timezone.get_current_timezone())
+        )
+        self.client.force_login(self.staff)
+
+        response = self.client.get(
+            reverse("accounts:store_dashboard_audit_log"),
+            {"date_from": "2026-06-01", "date_to": "2026-06-30"},
+        )
+
+        self.assertEqual(list(response.context["page_obj"].object_list), [in_range])
+
+    def test_overview_page_links_to_audit_log(self):
+        self.client.force_login(self.staff)
+
+        response = self.client.get(reverse("accounts:store_dashboard"))
+
+        self.assertContains(response, reverse("accounts:store_dashboard_audit_log"))

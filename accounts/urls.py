@@ -44,4 +44,5 @@ urlpatterns = [
         name="store_dashboard_refund_payment",
     ),
     path("store-dashboard/profitability/", views.profitability_report, name="profitability_report"),
+    path("store-dashboard/audit-log/", views.store_dashboard_audit_log, name="store_dashboard_audit_log"),
 ]
