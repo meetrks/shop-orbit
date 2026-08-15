@@ -250,6 +250,22 @@ class HomeTestimonialSectionTestCase(TestCase):
         self.assertContains(response, "Absolutely stunning craftsmanship.")
         self.assertNotContains(response, "Not featured but also great.")
 
+    def test_reviews_are_ordered_highest_rating_first(self):
+        other_buyer = User.objects.create_user(email="other@example.com", password="pw", full_name="Other Buyer")
+        self._make_review(rating=4, comment="Pretty good.")
+        self._make_review(rating=5, comment="Outstanding!", user=other_buyer)
+        HomeTestimonialSection.objects.create(
+            title="What Our Customers Say",
+            source=HomeTestimonialSection.Source.LATEST,
+            minimum_rating=4,
+            is_active=True,
+        )
+
+        response = self.client.get(reverse("pages:home"))
+        content = response.content.decode()
+
+        self.assertLess(content.index("Outstanding!"), content.index("Pretty good."))
+
     def test_inactive_section_is_not_shown(self):
         review = self._make_review(rating=5, comment="Should stay hidden.")
         HomeTestimonialSection.objects.create(

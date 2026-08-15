@@ -42,16 +42,20 @@ def _section_reviews(section):
     if section.source == HomeTestimonialSection.Source.MANUAL:
         picks = list(section.section_reviews.order_by("display_order").values_list("review_id", flat=True))
         by_id = {r.pk: r for r in base.filter(pk__in=picks)}
-        return [by_id[pk] for pk in picks if pk in by_id]
+        reviews = [by_id[pk] for pk in picks if pk in by_id]
+    else:
+        # LATEST: a star rating alone isn't a quotable testimonial, so only
+        # reviews with actual written feedback are eligible here.
+        qs = (
+            base.filter(rating__gte=section.minimum_rating, is_verified_purchase=True)
+            .exclude(comment="")
+            .order_by("-created_at")
+        )
+        reviews = list(qs[: section.limit])
 
-    # LATEST: a star rating alone isn't a quotable testimonial, so only
-    # reviews with actual written feedback are eligible here.
-    qs = (
-        base.filter(rating__gte=section.minimum_rating, is_verified_purchase=True)
-        .exclude(comment="")
-        .order_by("-created_at")
-    )
-    return list(qs[: section.limit])
+    # Display highest-rated testimonials first; sorted() is stable, so ties
+    # keep their prior order (recency for LATEST, staff order for MANUAL).
+    return sorted(reviews, key=lambda review: review.rating, reverse=True)
 
 
 def home(request):

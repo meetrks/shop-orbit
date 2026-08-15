@@ -173,7 +173,7 @@
                 }">
                     <div x-ref="track" class="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 {% if not entry.section.subtitle %}mt-6{% endif %}">
                         {% for review in entry.reviews %}
-                            <div data-testimonial-card class="snap-start shrink-0 w-[85%] sm:w-[45%] lg:w-[30%] bg-white border border-sky-100 rounded-xl p-6 flex flex-col">
+                            <div data-testimonial-card class="snap-start shrink-0 w-[85%] sm:w-[45%] lg:w-[30%] h-64 bg-white border border-sky-100 rounded-xl p-6 flex flex-col overflow-hidden">
                                 <div class="flex items-center gap-0.5 mb-3">
                                     {% for i in "12345" %}
                                         <svg viewBox="0 0 20 20" class="w-4 h-4 {% if forloop.counter <= review.rating %}fill-sky-500{% else %}fill-slate-200{% endif %}">
@@ -182,9 +182,9 @@
                                     {% endfor %}
                                 </div>
                                 {% if review.title %}
-                                    <p class="font-semibold text-navy-900 mb-1">{{ review.title }}</p>
+                                    <p class="font-semibold text-navy-900 mb-1 line-clamp-1">{{ review.title }}</p>
                                 {% endif %}
-                                <p class="text-sm text-navy-900/70 flex-1">&ldquo;{{ review.comment }}&rdquo;</p>
+                                <p class="text-sm text-navy-900/70 flex-1 line-clamp-4">&ldquo;{{ review.comment }}&rdquo;</p>
                                 <div class="mt-4 pt-4 border-t border-sky-50">
                                     <p class="text-sm font-semibold text-navy-900">{{ review.user.get_short_name }}</p>
                                     <p class="text-xs text-navy-900/50">Verified buyer &middot; {{ review.product.title|truncatechars:40 }}</p>
